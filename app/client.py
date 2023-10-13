@@ -58,14 +58,15 @@ class ChirpstackClient:
 
         # Construct request.
         req = api.ListDevicesRequest()
-        req.limit = LIMIT #Max number of devices to return in the result-set.
+        req.limit = LIMIT
         req.offset = 0 #get first page
         req.application_id = app_id #Application ID (UUID) to filter devices on.
-        #req.search = "MFR Node" #If set, the given string will be used to search on name (optional).
+        #req.search = "" #If set, the given string will be used to search on name (optional).
 
         return self.agg_pagination(client,req,metadata)
 
-    def list_apps(self):
+    #TODO: list all apps by inputting an array of all tenant id(s)
+    def list_apps(self,tenant_id):
         client = api.ApplicationServiceStub(self.channel)
 
         # Define the JWT key metadata.
@@ -73,7 +74,12 @@ class ChirpstackClient:
 
         # Construct request
         req = api.ListApplicationsRequest()
-        req.limit = 1
+        req.limit = LIMIT
+        req.offset = 0 #get first page
+        req.tenant_id = tenant_id #Tenant ID to list the applications for.
+        #req.search = "" #If set, the given string will be used to search on name (optional).
+
+        return self.agg_pagination(client,req,metadata)
 
     #this method aggregates all the result-sets in pagination into one list
     @staticmethod

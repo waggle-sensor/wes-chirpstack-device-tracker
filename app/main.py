@@ -8,6 +8,8 @@ from client import ChirpstackClient
 
 #TODO: implement the get apps api to get all devices
 APP_ID = "ac81e18b-1925-47f9-839a-27d999a8af55"
+#TODO: implement the get tenants api to get all apps
+TENANT_ID = "52f14cd4-c6f1-4fbd-8f87-4025e1d49242"
 
 #TODO: uncomment the wes-chirpstack-sever when implemented in kubernetes cluster
 #server = "http://wes-chirpstack-server:8080"
@@ -34,4 +36,8 @@ if __name__ == "__main__":
         print("Last seen at:", formatted_date) 
         print(device.device_status)
         print("\n")
+
+    resp = chirpstack_client.list_apps(TENANT_ID)
+
+    print(resp)
 
