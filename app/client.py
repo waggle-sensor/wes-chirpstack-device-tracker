@@ -48,25 +48,28 @@ class ChirpstackClient:
 
         return resp.token
 
-    #list devices in the app designated by app_id
-    #TODO: list all devices by inputting an array of all app id(s)
-    def list_devices(self,app_id):
+    #list all devices by inputting the response of self.list_all_apps()
+    def list_all_devices(self,app_resp):
         client = api.DeviceServiceStub(self.channel)
 
         # Define the JWT key metadata.
         metadata = [("authorization", "Bearer %s" % self.auth_token)]
 
-        # Construct request.
-        req = api.ListDevicesRequest()
-        req.limit = LIMIT
-        req.offset = 0 #get first page
-        req.application_id = app_id #Application ID (UUID) to filter devices on.
-        #req.search = "" #If set, the given string will be used to search on name (optional).
+        devices = []
+        for app in app_resp:
+            # Construct request.
+            req = api.ListDevicesRequest()
+            req.limit = LIMIT
+            req.offset = 0 #get first page
+            req.application_id = app.id #Application ID (UUID) to filter devices on.
+            #req.search = "" #If set, the given string will be used to search on name (optional).
 
-        return self.agg_pagination(client,req,metadata)
+            devices.extend(self.agg_pagination(client,req,metadata))
 
-    #TODO: list all apps by inputting an array of all tenant id(s)
-    def list_apps(self,tenant_id):
+        return devices
+
+    #TODO: list all apps by inputting the response of self.list_tenants()
+    def list_all_apps(self,tenant_id):
         client = api.ApplicationServiceStub(self.channel)
 
         # Define the JWT key metadata.
