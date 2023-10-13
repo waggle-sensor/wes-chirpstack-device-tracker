@@ -5,6 +5,10 @@ from chirpstack_api import api
 EMAIL = 'admin'
 PASSWORD = 'admin'
 
+#Pagination
+LIMIT = 100 #Max number of records to return in the result-set.
+OFFSET = LIMIT #Offset in the result-set (setting offset=limit goes to the next set of records aka next page)
+
 class ChirpstackClient:
     def __init__(self, server):
         self.server = server
@@ -54,11 +58,34 @@ class ChirpstackClient:
 
         # Construct request.
         req = api.ListDevicesRequest()
-        req.limit = 5 #Max number of devices to return in the result-set.
-        #req.offset = 5 # Offset in the result-set (for pagination). Combination with limit only returns total_count
-        #req.search = "MFR Node" #If set, the given string will be used to search on name (optional).
+        req.limit = LIMIT #Max number of devices to return in the result-set.
+        req.offset = 0 #get first page
         req.application_id = app_id #Application ID (UUID) to filter devices on.
+        #req.search = "MFR Node" #If set, the given string will be used to search on name (optional).
 
-        resp = client.List(req, metadata=metadata)
+        return self.agg_pagination(client,req,metadata)
 
-        return resp
+    def list_apps(self):
+        client = api.ApplicationServiceStub(self.channel)
+
+        # Define the JWT key metadata.
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        # Construct request
+        req = api.ListApplicationsRequest()
+        req.limit = 1
+
+    #this method aggregates all the result-sets in pagination into one list
+    @staticmethod
+    def agg_pagination(client,req,metadata):
+        records=[]
+        while True:
+            resp = client.List(req, metadata=metadata)
+            records.extend(resp.result)
+
+            req.offset += OFFSET
+
+            if (len(records) == resp.total_count):
+                break
+
+        return records

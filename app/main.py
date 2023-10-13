@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     resp = chirpstack_client.list_devices(APP_ID)
 
-    for device in resp.result:
+    for device in resp:
         # Calculate the total seconds with nanoseconds
         total_seconds = device.last_seen_at.seconds + device.last_seen_at.nanos / 1e9
         # Convert seconds since epoch to a datetime object
@@ -34,3 +34,4 @@ if __name__ == "__main__":
         print("Last seen at:", formatted_date) 
         print(device.device_status)
         print("\n")
+
