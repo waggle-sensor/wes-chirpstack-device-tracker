@@ -17,7 +17,7 @@ class MqttClient:
         # delay is the number of seconds to wait between successive reconnect attempts(default=1).
         # delay_max is the maximum number of seconds to wait between reconnection attempts(default=1)
         client.reconnect_delay_set(min_delay=5, max_delay=60)
-        client.on_message = lambda client, userdata, message: self.dry_message(client, userdata, message)
+        client.on_message = lambda client, userdata, message: self.log_message(client, userdata, message)
         client.on_log = self.on_log
 
         return client
@@ -46,48 +46,31 @@ class MqttClient:
         logging.debug(string) #prints if args.debug = true
         return
 
-    def dry_message(self, client, userdata, message):
-
-        self.log_message(message)
-
-        self.log_measurements(message)
-
-        return
-
     @staticmethod
-    def log_message(message):
-            
-        data = (
-            "LORAWAN Message received: " + message.payload.decode("utf-8") + " with topic " + str(message.topic)
-        )
-        logging.info(data) #log message received
-
-        return
-
-    def log_measurements(self,message):
+    def log_message(self, client, userdata, message):
 
         try: #get metadata and measurements received
             metadata = parse_message_payload(message.payload.decode("utf-8"))
-            measurements = metadata["object"]["measurements"]
+            deviceInfo = metadata["deviceInfo"]
         except:
-            logging.error("Message did not contain measurements.")
+            logging.error("Message did not contain device info.")
             return
 
+        deviceInfo = Get_device(metadata)
         Performance_vals = Get_Signal_Performance_values(metadata)
-        
-        for measurement in measurements:
+            
+        data = (
+            "LORAWAN Message received by device " + deviceInfo['deviceName'] + 
+            " with deveui " + deviceInfo['devEui']  + ":" + message.payload.decode("utf-8")
+        )
+        logging.debug(data)
 
-            if self.args.collect: #true if not empty
-                if measurement["name"] in self.args.collect: #if not empty only log measurements in list
-                    logging.info(str(measurement["name"]) + ": " + str(measurement["value"]))
-            else: #else collect is empty so log all measurements
-                    logging.info(str(measurement["name"]) + ": " + str(measurement["value"]))
-
+        logging.debug("Signal Performance:")
         for val in Performance_vals['rxInfo']:
-            logging.info("gatewayId: " + str(val["gatewayId"]))
-            logging.info("  rssi: " + str(val["rssi"]))
-            logging.info("  snr: " + str(val["snr"]))
-        logging.info("spreading factor: " + str(Performance_vals["spreadingFactor"]))
+            logging.debug("gatewayId: " + str(val["gatewayId"]))
+            logging.debug("  rssi: " + str(val["rssi"]))
+            logging.debug("  snr: " + str(val["snr"]))
+        logging.debug("spreading factor: " + str(Performance_vals["spreadingFactor"]))
 
         return
 
