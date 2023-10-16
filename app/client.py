@@ -64,7 +64,7 @@ class ChirpstackClient:
             req.application_id = app.id #Application ID (UUID) to filter devices on.
             #req.search = "" #If set, the given string will be used to search on name (optional).
 
-            devices.extend(self.agg_pagination(client,req,metadata))
+            devices.extend(self.List_agg_pagination(client,req,metadata))
 
         return devices
 
@@ -82,11 +82,27 @@ class ChirpstackClient:
         req.tenant_id = tenant_id #Tenant ID to list the applications for.
         #req.search = "" #If set, the given string will be used to search on name (optional).
 
-        return self.agg_pagination(client,req,metadata)
+        return self.List_agg_pagination(client,req,metadata)
 
-    #this method aggregates all the result-sets in pagination into one list
+    #List all tenants
+    def list_tenants(self):
+        client = api.TenantServiceStub(self.channel)
+
+        # Define the JWT key metadata.
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        #Construct request
+        req = api.ListTenantsRequest()
+        req.limit = LIMIT
+        req.offset = 0 #get first page
+        #req.search = "" #If set, the given string will be used to search on name (optional).
+        #req.user_id = "" #If set, filters the result set to the tenants of the user. Only global API keys are able to filter by this field.
+
+        return self.List_agg_pagination(client,req,metadata)
+
+    #this method aggregates all the result-sets in pagination from rpc List into one list
     @staticmethod
-    def agg_pagination(client,req,metadata):
+    def List_agg_pagination(client,req,metadata):
         records=[]
         while True:
             resp = client.List(req, metadata=metadata)

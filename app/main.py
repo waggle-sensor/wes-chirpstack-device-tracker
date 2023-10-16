@@ -18,9 +18,13 @@ server = "localhost:8080"
 if __name__ == "__main__":
     chirpstack_client = ChirpstackClient(server)
 
+    tenant_resp = chirpstack_client.list_tenants()
+
     app_resp = chirpstack_client.list_all_apps(TENANT_ID)
 
     resp = chirpstack_client.list_all_devices(app_resp)
+
+    print(tenant_resp)
 
     for device in resp:
         # Calculate the total seconds with nanoseconds
