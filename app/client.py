@@ -68,21 +68,26 @@ class ChirpstackClient:
 
         return devices
 
-    #TODO: list all apps by inputting the response of self.list_tenants()
-    def list_all_apps(self,tenant_id):
+    #list all apps by inputting the response of self.list_tenants()
+    def list_all_apps(self,tenant_resp):
         client = api.ApplicationServiceStub(self.channel)
 
         # Define the JWT key metadata.
         metadata = [("authorization", "Bearer %s" % self.auth_token)]
 
-        # Construct request
-        req = api.ListApplicationsRequest()
-        req.limit = LIMIT
-        req.offset = 0 #get first page
-        req.tenant_id = tenant_id #Tenant ID to list the applications for.
-        #req.search = "" #If set, the given string will be used to search on name (optional).
+        apps = []
 
-        return self.List_agg_pagination(client,req,metadata)
+        for tenant in tenant_resp:
+            # Construct request
+            req = api.ListApplicationsRequest()
+            req.limit = LIMIT
+            req.offset = 0 #get first page
+            req.tenant_id = tenant.id #Tenant ID to list the applications for.
+            #req.search = "" #If set, the given string will be used to search on name (optional).
+
+            apps.extend(self.List_agg_pagination(client,req,metadata))
+
+        return apps
 
     #List all tenants
     def list_tenants(self):
