@@ -4,7 +4,7 @@ import datetime
 import pytz 
 import grpc
 from chirpstack_api import api
-from client import ChirpstackClient
+from clients import ChirpstackClient
 
 #TODO: uncomment the wes-chirpstack-sever when implemented in kubernetes cluster
 #server = "http://wes-chirpstack-server:8080"
