@@ -105,6 +105,18 @@ class ChirpstackClient:
 
         return self.List_agg_pagination(client,req,metadata)
 
+    def get_device_profile(self,device_profile_id):
+        client = api.DeviceProfileServiceStub(self.channel)
+
+        # Define the JWT key metadata.
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        #Construct request
+        req = api.GetDeviceProfileRequest()
+        req.id = device_profile_id
+
+        return client.Get(req, metadata=metadata)
+
     #this method aggregates all the result-sets in pagination from rpc List into one list
     @staticmethod
     def List_agg_pagination(client,req,metadata):

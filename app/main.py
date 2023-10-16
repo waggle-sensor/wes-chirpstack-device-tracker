@@ -32,3 +32,5 @@ if __name__ == "__main__":
         print("Last seen at:", formatted_date) 
         print(device.device_status)
         print("\n")
+
+        print(chirpstack_client.get_device_profile(device.device_profile_id))
