@@ -25,6 +25,8 @@ class ChirpstackClient:
         # Send the Login request.
         resp = client.Login(req)
 
+        print(resp)
+
         return resp.jwt
 
     #create network api keys using jwt auth token
