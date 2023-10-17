@@ -7,10 +7,6 @@ from chirpstack_client import ChirpstackClient
 from mqtt_client import MqttClient
 import argparse
 
-#TODO: uncomment the wes-chirpstack-sever when implemented in kubernetes cluster
-#server = "http://wes-chirpstack-server:8080"
-server = "localhost:8080"
-
 def main():
 
     parser = argparse.ArgumentParser()
