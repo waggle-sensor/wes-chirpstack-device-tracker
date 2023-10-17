@@ -32,6 +32,26 @@ def main():
         default=os.getenv("MQTT_SUBSCRIBE_TOPIC", "application/#"),
         help="MQTT subscribe topic",
     )
+    parser.add_argument(
+        "--mqtt-subscribe-topic",
+        default=os.getenv("MQTT_SUBSCRIBE_TOPIC", "application/#"),
+        help="MQTT subscribe topic",
+    )
+    parser.add_argument(
+        "--chirpstack-account-email",
+        default=os.getenv("CHIRPSTACK_ACCOUNT_EMAIL"),
+        help="The Chirpstack Account's email to use to access APIs",
+    )
+    parser.add_argument(
+        "--chirpstack-account-password",
+        default=os.getenv("CHIRPSTACK_ACCOUNT_PASSWORD"),
+        help="The Chirpstack Account's password to use to access APIs",
+    )
+    parser.add_argument(
+        "--chirpstack-api-interface",
+        default=os.getenv("CHIRPSTACK_API_INTERFACE"),
+        help="Chirpstack's server API interface. The port is usually 8080",
+    )
 
     #get args
     args = parser.parse_args()
@@ -47,8 +67,7 @@ def main():
     mqtt_client = MqttClient(args)
     mqtt_client.run()
 
-if __name__ == "__main__":
-    chirpstack_client = ChirpstackClient(server)
+    chirpstack_client = ChirpstackClient(args)
 
     tenant_resp = chirpstack_client.list_tenants()
 
@@ -71,3 +90,7 @@ if __name__ == "__main__":
         print("\n")
 
         print(chirpstack_client.get_device_profile(device.device_profile_id))
+
+if __name__ == "__main__":
+
+    main()
