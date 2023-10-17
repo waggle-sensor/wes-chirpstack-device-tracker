@@ -17,7 +17,7 @@ class MqttClient:
         # delay is the number of seconds to wait between successive reconnect attempts(default=1).
         # delay_max is the maximum number of seconds to wait between reconnection attempts(default=1)
         client.reconnect_delay_set(min_delay=5, max_delay=60)
-        client.on_message = lambda client, userdata, message: self.log_message(client, userdata, message)
+        client.on_message = lambda client, userdata, message: self.on_message(client, userdata, message)
         client.on_log = self.on_log
 
         return client
@@ -47,8 +47,14 @@ class MqttClient:
         logging.debug(string) #prints if args.debug = true
         return
 
+    def on_message(self, client, userdata, message):
+
+        self.log_message(message) if args.debug else None
+
+        return
+
     @staticmethod
-    def log_message(self, client, userdata, message):
+    def log_message(message):
 
         try: #get metadata and measurements received
             metadata = parse_message_payload(message.payload.decode("utf-8"))
