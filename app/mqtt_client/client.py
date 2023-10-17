@@ -55,7 +55,18 @@ class MqttClient:
     #method to run when message is received
     def on_message(self, client, userdata, message):
 
+        #log message if debug flag was passed
         self.log_message(message) if args.debug else None
+
+        #parse message for metadata and deviceInfo. 
+        result = self.parse_message(message)
+        if result is not None:
+            metadata, deviceInfo = result
+        else:
+            return
+
+        #TODO: now that you have the device info you can read the manifest
+        # and check if the device exist in lorawandevices
 
         return
 
@@ -63,7 +74,12 @@ class MqttClient:
     @staticmethod
     def log_message(message):
 
-        metadata, deviceInfo = self.parse_message(message)
+        #parse message for metadata and deviceInfo. 
+        result = self.parse_message(message)
+        if result is not None:
+            metadata, deviceInfo = result
+        else:
+            return
 
         Performance_vals = Get_Signal_Performance_values(metadata)
             
@@ -86,14 +102,11 @@ class MqttClient:
     @staticmethod
     def parse_message(message):
 
-        try: #get metadata and measurements received
+        try: #get metadata and try to get device info
             metadata = parse_message_payload(message.payload.decode("utf-8"))
-            deviceInfo = metadata["deviceInfo"]
+            temp = metadata["deviceInfo"]
         except:
-            logging.error("Message did not contain device info.")
-            raise ValueError("deviceInfo was not found")
-
-        metadata = self.parse_message(message)
+            return None
 
         deviceInfo = Get_device(metadata)
 
