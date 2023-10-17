@@ -44,4 +44,4 @@ spec:
             - name: CHIRPSTACK_ACCOUNT_PASSWORD
               value: "admin"
             - name: CHIRPSTACK_API_INTERFACE
-              value: "http://wes-chirpstack-server:8080"
+              value: "wes-chirpstack-server:8080"
