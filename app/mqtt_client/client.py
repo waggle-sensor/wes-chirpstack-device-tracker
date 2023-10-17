@@ -8,6 +8,7 @@ class MqttClient:
         self.args = args
         self.client = self.configure_client()
 
+    #configures the client
     def configure_client(self):
         client_id = self.generate_client_id()
         client = mqtt.Client(client_id)
@@ -22,6 +23,7 @@ class MqttClient:
 
         return client
 
+    #method that generate client name (a combination of vsn, container name, and process id)
     @staticmethod
     def generate_client_id():
         VSN = os.getenv("WAGGLE_NODE_VSN", "NONE")
@@ -29,6 +31,7 @@ class MqttClient:
         process_id = os.getpid()
         return f"{VSN}-{hostname}-{process_id}"
 
+    #method to run when connecting to mqtt broker
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
             logging.info("Connected to MQTT broker")
@@ -37,22 +40,26 @@ class MqttClient:
             logging.error(f"Connection to MQTT broker failed with code {rc}") 
         return
 
+    #method to run when subcribing to mqtt broker
     @staticmethod
     def on_subscribe(client, obj, mid, granted_qos):
         logging.info("Subscribed: " + str(mid) + " " + str(granted_qos))
         return
 
+    #method to run on log of client
     @staticmethod
     def on_log(client, obj, level, string):
         logging.debug(string) #prints if args.debug = true
         return
 
+    #method to run when message is received
     def on_message(self, client, userdata, message):
 
         self.log_message(message) if args.debug else None
 
         return
 
+    #log message received from mqtt broker for debugging
     @staticmethod
     def log_message(message):
 
@@ -75,6 +82,7 @@ class MqttClient:
 
         return
 
+    #parse message for metadata and device info
     @staticmethod
     def parse_message(message):
 
@@ -91,6 +99,7 @@ class MqttClient:
 
         return (metadata, deviceInfo)
 
+    #Connect to MQTT broker
     def run(self):
         logging.info(f"connecting [{self.args.mqtt_server_ip}:{self.args.mqtt_server_port}]...")
         self.client.connect(host=self.args.mqtt_server_ip, port=self.args.mqtt_server_port, bind_address="0.0.0.0")
