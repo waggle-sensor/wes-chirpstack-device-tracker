@@ -54,10 +54,7 @@ def main():
         datefmt="%Y/%m/%d %H:%M:%S",
     )
 
-    #configure mqtt client
-    mqtt_client = MqttClient(args)
-    mqtt_client.run()
-
+    #configure chirpstack client
     chirpstack_client = ChirpstackClient(args)
 
     tenant_resp = chirpstack_client.list_tenants()
@@ -81,6 +78,10 @@ def main():
         print("\n")
 
         print(chirpstack_client.get_device_profile(device.device_profile_id))
+    
+    #configure mqtt client
+    mqtt_client = MqttClient(args)
+    mqtt_client.run()
 
 if __name__ == "__main__":
 
