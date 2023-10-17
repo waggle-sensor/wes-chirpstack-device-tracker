@@ -1,5 +1,6 @@
 import grpc
 from chirpstack_api import api
+import logging
 
 #Pagination
 LIMIT = 100 #Max number of records to return in the result-set.
@@ -25,7 +26,7 @@ class ChirpstackClient:
         # Send the Login request.
         resp = client.Login(req)
 
-        print(resp)
+        logging.debug(resp)
 
         return resp.jwt
 
