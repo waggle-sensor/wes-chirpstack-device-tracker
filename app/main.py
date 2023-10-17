@@ -1,7 +1,6 @@
 import os
 import sys
 import datetime
-import pytz 
 import grpc
 from chirpstack_api import api
 from chirpstack_client import ChirpstackClient
