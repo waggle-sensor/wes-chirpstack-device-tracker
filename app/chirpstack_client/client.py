@@ -11,9 +11,9 @@ class ChirpstackClient:
         self.args = args
         self.server = self.args.chirpstack_api_interface
         self.channel = grpc.insecure_channel(self.server)
-        self.auth_token = self.login()
         self.email = self.args.chirpstack_account_email
         self.password = self.args.chirpstack_account_password
+        self.auth_token = self.login()
 
     #Login to the server to get jwt auth token
     def login(self):
