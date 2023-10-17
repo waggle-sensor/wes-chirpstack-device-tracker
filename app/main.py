@@ -4,11 +4,48 @@ import datetime
 import pytz 
 import grpc
 from chirpstack_api import api
-from clients import ChirpstackClient
+from chirpstack_client import ChirpstackClient
+from mqtt_client import MqttClient
+import argparse
 
 #TODO: uncomment the wes-chirpstack-sever when implemented in kubernetes cluster
 #server = "http://wes-chirpstack-server:8080"
 server = "localhost:8080"
+
+def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="enable debug logs")
+    parser.add_argument(
+        "--mqtt-server-ip",
+        default=os.getenv("MQTT_SERVER_HOST", "wes-rabbitmq"),
+        help="MQTT server IP address",
+    )
+    parser.add_argument(
+        "--mqtt-server-port",
+        default=os.getenv("MQTT_SERVER_PORT", "1883"),
+        help="MQTT server port",
+        type=int,
+    )
+    parser.add_argument(
+        "--mqtt-subscribe-topic",
+        default=os.getenv("MQTT_SUBSCRIBE_TOPIC", "application/#"),
+        help="MQTT subscribe topic",
+    )
+
+    #get args
+    args = parser.parse_args()
+
+    #configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
+
+    #configure mqtt client
+    mqtt_client = MqttClient(args)
+    mqtt_client.run()
 
 if __name__ == "__main__":
     chirpstack_client = ChirpstackClient(server)
