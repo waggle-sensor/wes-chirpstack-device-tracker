@@ -7,7 +7,7 @@ LIMIT = 100 #Max number of records to return in the result-set.
 OFFSET = LIMIT #Offset in the result-set (setting offset=limit goes to the next set of records aka next page)
 
 class ChirpstackClient:
-    def __init__(self, args, server):
+    def __init__(self, args):
         self.server = self.args.chirpstack_api_interface
         self.channel = grpc.insecure_channel(self.server)
         self.auth_token = self.login()
