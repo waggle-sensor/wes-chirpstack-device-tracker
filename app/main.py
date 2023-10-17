@@ -6,6 +6,7 @@ from chirpstack_api import api
 from chirpstack_client import ChirpstackClient
 from mqtt_client import MqttClient
 import argparse
+import logging
 
 def main():
 
