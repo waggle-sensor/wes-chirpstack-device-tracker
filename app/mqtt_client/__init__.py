@@ -1,2 +1,2 @@
 ## add libraries
-from client import *
+from .client import *
