@@ -25,9 +25,31 @@ class ChirpstackClient:
         req.password = self.password
 
         # Send the Login request.
-        resp = client.Login(req)
+        logging.info(f"connecting {self.server}...")
+        try:
+            resp = client.Login(req)
+        except grpc._channel._InactiveRpcError as e:
+            # Handle the exception here
+            status_code = e.code()
+            details = e.details()
+            
+            if status_code == grpc.StatusCode.UNAVAILABLE:
+                logging.info("Service is unavailable. This might be a DNS resolution issue.")
+                logging.info("Details:", details)
+            else:
+                logging.info(f"An error occurred with status code {status_code}.")
+                logging.info("Details:", details)
 
-        logging.debug(resp)
+            # Exit with a non-zero status code to indicate failure
+            sys.exit(1)
+        except Exception as e:
+            # Handle other exceptions if needed
+            logging.info("An error occurred:", e)
+
+            # Exit with a non-zero status code to indicate failure
+            sys.exit(1)
+                
+        logging.info("Connected to Chirpstack Server")
 
         return resp.jwt
 
