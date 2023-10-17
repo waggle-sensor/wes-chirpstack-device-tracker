@@ -56,14 +56,8 @@ class MqttClient:
     @staticmethod
     def log_message(message):
 
-        try: #get metadata and measurements received
-            metadata = parse_message_payload(message.payload.decode("utf-8"))
-            deviceInfo = metadata["deviceInfo"]
-        except:
-            logging.error("Message did not contain device info.")
-            return
+        metadata, deviceInfo = self.parse_message(message)
 
-        deviceInfo = Get_device(metadata)
         Performance_vals = Get_Signal_Performance_values(metadata)
             
         data = (
@@ -80,6 +74,22 @@ class MqttClient:
         logging.debug("spreading factor: " + str(Performance_vals["spreadingFactor"]))
 
         return
+
+    @staticmethod
+    def parse_message(message):
+
+        try: #get metadata and measurements received
+            metadata = parse_message_payload(message.payload.decode("utf-8"))
+            deviceInfo = metadata["deviceInfo"]
+        except:
+            logging.error("Message did not contain device info.")
+            raise ValueError("deviceInfo was not found")
+
+        metadata = self.parse_message(message)
+
+        deviceInfo = Get_device(metadata)
+
+        return (metadata, deviceInfo)
 
     def run(self):
         logging.info(f"connecting [{self.args.mqtt_server_ip}:{self.args.mqtt_server_port}]...")
