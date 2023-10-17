@@ -24,9 +24,10 @@ class MqttClient:
 
     @staticmethod
     def generate_client_id():
+        VSN = os.getenv("WAGGLE_NODE_VSN", "NONE")
         hostname = os.uname().nodename
         process_id = os.getpid()
-        return f"{hostname}-{process_id}"
+        return f"{VSN}-{hostname}-{process_id}"
 
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
