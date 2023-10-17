@@ -35,17 +35,17 @@ class ChirpstackClient:
             details = e.details()
             
             if status_code == grpc.StatusCode.UNAVAILABLE:
-                logging.info("Service is unavailable. This might be a DNS resolution issue.")
-                logging.info("Details:", details)
+                logging.error("Service is unavailable. This might be a DNS resolution issue.")
+                logging.error("Details: %s", details)
             else:
-                logging.info(f"An error occurred with status code {status_code}.")
-                logging.info("Details:", details)
+                logging.error(f"An error occurred with status code {status_code}")
+                logging.error("Details: %s", details)
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
         except Exception as e:
             # Handle other exceptions if needed
-            logging.info("An error occurred:", e)
+            logging.error("An error occurred: %s", e)
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
