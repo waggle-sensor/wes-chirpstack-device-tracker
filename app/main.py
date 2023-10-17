@@ -28,11 +28,6 @@ def main():
         help="MQTT subscribe topic",
     )
     parser.add_argument(
-        "--mqtt-subscribe-topic",
-        default=os.getenv("MQTT_SUBSCRIBE_TOPIC", "application/#"),
-        help="MQTT subscribe topic",
-    )
-    parser.add_argument(
         "--chirpstack-account-email",
         default=os.getenv("CHIRPSTACK_ACCOUNT_EMAIL"),
         help="The Chirpstack Account's email to use to access APIs",
