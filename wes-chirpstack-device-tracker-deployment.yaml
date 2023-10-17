@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wes-chirpstack-device-tracker
+spec:
+  selector:
+    matchLabels:
+      app: wes-chirpstack-device-tracker
+  template:
+    metadata:
+      labels:
+        app: wes-chirpstack-device-tracker
+    spec:
+      priorityClassName: wes-high-priority
+      nodeSelector:
+        resource.lorawan: "true"
+      containers:
+        - name: wes-chirpstack-device-tracker
+          image: 10.31.81.1:5000/local/wes-chirpstack-device-tracker:latest
+          args: ["--debug"] #remove once deployed
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 50m
+              memory: 25Mi
+            limits:
+              cpu: 75m
+              memory: 50Mi
+          envFrom:
+            - configMapRef:
+                name: wes-identity
+          env:
+            - name: MQTT_SERVER_HOST
+              value: "wes-rabbitmq"
+            - name: MQTT_SERVER_PORT
+              value: "1883"
+            - name: MQTT_SUBSCRIBE_TOPIC
+              value: "application/#"
+            - name: MQTT_BROKER_USER
+              value: "service"
+            - name: MQTT_BROKER_PASSWORD
+              value: "service"
+            - name: CHIRPSTACK_ACCOUNT_EMAIL
+              value: "admin"
+            - name: CHIRPSTACK_ACCOUNT_PASSWORD
+              value: "admin"
+            - name: CHIRPSTACK_API_INTERFACE
+              value: "http://wes-chirpstack-server:8080"
