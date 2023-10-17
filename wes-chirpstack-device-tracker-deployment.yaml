@@ -16,7 +16,7 @@ spec:
         resource.lorawan: "true"
       containers:
         - name: wes-chirpstack-device-tracker
-          image: 10.31.81.1:5000/local/wes-chirpstack-device-tracker:latest
+          image: wes-chirpstack-device-tracker:latest
           args: ["--debug"] #remove once deployed
           imagePullPolicy: IfNotPresent
           resources:
