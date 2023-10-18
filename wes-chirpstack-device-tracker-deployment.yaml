@@ -45,3 +45,5 @@ spec:
               value: "admin"
             - name: CHIRPSTACK_API_INTERFACE
               value: "wes-chirpstack-server:8080"
+            - name: MANIFEST_FILE
+              value: "/etc/waggle/node-manifest-v2.json"

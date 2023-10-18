@@ -14,18 +14,18 @@ def main():
     parser.add_argument("--debug", action="store_true", help="enable debug logs")
     parser.add_argument(
         "--mqtt-server-ip",
-        default=os.getenv("MQTT_SERVER_HOST", "wes-rabbitmq"),
+        default=os.getenv("MQTT_SERVER_HOST"),
         help="MQTT server IP address",
     )
     parser.add_argument(
         "--mqtt-server-port",
-        default=os.getenv("MQTT_SERVER_PORT", "1883"),
+        default=os.getenv("MQTT_SERVER_PORT"),
         help="MQTT server port",
         type=int,
     )
     parser.add_argument(
         "--mqtt-subscribe-topic",
-        default=os.getenv("MQTT_SUBSCRIBE_TOPIC", "application/#"),
+        default=os.getenv("MQTT_SUBSCRIBE_TOPIC"),
         help="MQTT subscribe topic",
     )
     parser.add_argument(
@@ -42,6 +42,12 @@ def main():
         "--chirpstack-api-interface",
         default=os.getenv("CHIRPSTACK_API_INTERFACE"),
         help="Chirpstack's server API interface. The port is usually 8080",
+    )
+    parser.add_argument(
+        "--manifest",
+        default=os.getenv("MANIFEST_FILE"),
+        type=Path,
+        help="path to node manifest file",
     )
 
     #get args
