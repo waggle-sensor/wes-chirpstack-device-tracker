@@ -54,25 +54,6 @@ class ChirpstackClient:
 
         return resp.jwt
 
-    #create network api keys using jwt auth token
-    def create_api_key(self, jwt):
-        client = api.InternalServiceStub(self.channel)
-
-        # Define the JWT key metadata.
-        metadata = [("authorization", "Bearer %s" % self.auth_token)]
-
-        # Construct the CreateApiKey request.
-        api_key = api.ApiKey(
-            name='device-tracker',
-            is_admin=True
-        )
-        req = api.CreateApiKeyRequest(api_key=api_key)
-
-        # Send the CreateApiKey request.
-        resp = client.CreateApiKey(req, metadata=metadata)
-
-        return resp.token
-
     #list all devices by inputting the response of self.list_all_apps()
     def list_all_devices(self,app_resp):
         client = api.DeviceServiceStub(self.channel)
