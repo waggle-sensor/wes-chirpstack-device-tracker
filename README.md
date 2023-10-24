@@ -1,2 +1,2 @@
-# wes-chirpstack-device-tracker
+# wes-chirpstack-tracker
 Tracks lorawan devices sending payloads to wes-chirpstack-server and keys being used by the devices
