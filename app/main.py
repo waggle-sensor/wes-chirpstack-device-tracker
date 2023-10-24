@@ -4,9 +4,10 @@ import datetime
 import grpc
 from chirpstack_api import api
 from chirpstack_client import ChirpstackClient
-from mqtt_client import MqttClient
+#from mqtt_client import MqttClient
 import argparse
 import logging
+from pathlib import Path
 
 def main():
 
@@ -80,10 +81,12 @@ def main():
         print("Device ID:", device.dev_eui)
         print("Device Name:", device.name)
         print("Last seen at:", formatted_date) 
+        print("Device Keys:",chirpstack_client.get_device_keys(device.dev_eui))
         print(device.device_status)
         print("\n")
 
         print(chirpstack_client.get_device_profile(device.device_profile_id))
+        
     
     #configure mqtt client
     mqtt_client = MqttClient(args)
