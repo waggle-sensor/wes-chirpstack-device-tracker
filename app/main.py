@@ -81,7 +81,8 @@ def main():
         print("Device ID:", device.dev_eui)
         print("Device Name:", device.name)
         print("Last seen at:", formatted_date) 
-        print("Device Keys:",chirpstack_client.get_device_keys(device.dev_eui))
+        print("Device App Keys:",chirpstack_client.get_device_app_key(device.dev_eui))
+        print("Device Activation:",chirpstack_client.get_device_activation(device.dev_eui))
         print(device.device_status)
         print("\n")
 
