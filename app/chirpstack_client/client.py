@@ -111,6 +111,7 @@ class ChirpstackClient:
 
         return self.List_agg_pagination(client,req,metadata)
 
+    #get device profiles using profile id from list_all_devices() 
     def get_device_profile(self,device_profile_id):
         client = api.DeviceProfileServiceStub(self.channel)
 
