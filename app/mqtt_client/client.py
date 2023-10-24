@@ -68,6 +68,36 @@ class MqttClient:
         #TODO: now that you have the device info you can read the manifest
         # and check if the device exist in lorawandevices
 
+        #load the node manifest
+        with open(args.manifest) as f:
+            manifest = json.load(f)
+
+        #get the manifest lorawan connection dict for this node
+        #consider using a bloom filter: if lorawan connections gets to be a huge number the computation will be too high
+        #   to do on every message
+        if manifest["lorawanconnections"]:
+            for lorawanconnection in manifest["lorawanconnections"]:
+                lorawandevice = lorawanconnection["lorawandevice"]
+                if lorawandevice["deveui"] == deviceInfo["devEui"]:
+                    #update lorawan connection and device in both db and manifest file
+                    break
+                    return
+                else:
+                    #try to retrieve device from db
+                        #if not found create device in both db and manifest file
+                        #else update device in both db and manifest file
+                    #create lorawan connection with device in both db and manifest file
+                    #create lorawan connection and device in both db and manifest file <-- make sure this is right
+                    #!!!! TODO: this is not right has to be outside the loop!
+                    return
+        else:
+            #try to retrieve device from db
+                #if not found create device in db
+                #else update device in db
+            #create lorawan connection with device in both db and manifest file
+            return
+
+
         return
 
     #log message received from mqtt broker for debugging
