@@ -123,6 +123,52 @@ class ChirpstackClient:
         req.id = device_profile_id
 
         return client.Get(req, metadata=metadata)
+    
+    #get device Application key using dev eui (Only OTAA)
+    def get_device_app_key(self,deveui):
+        client = api.DeviceServiceStub(self.channel)
+
+        #define the JWT key metadata
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        #construct request
+        req = api.GetDeviceKeysRequest()
+        req.dev_eui = deveui
+
+        try:
+            resp = client.GetKeys(req, metadata=metadata)
+        except grpc._channel._InactiveRpcError as e:
+
+            status_code = e.code()
+            details = e.details()
+
+            if status_code == grpc.StatusCode.NOT_FOUND:
+                logging.error("The device key does not exist. It is possible that the device is using ABP which does not use an application key")
+                logging.error("Details: %s", details)
+            else:
+                logging.error(f"An error occurred with status code {status_code}")
+                logging.error("Details: %s", details)
+
+            return
+        except Exception as e:
+            # Handle other exceptions
+            logging.error("An error occurred: %s", e)
+            return
+        
+        return resp.device_keys.nwk_key
+
+    #Get Activation returns the current activation details of the device (OTAA or ABP) using deveui
+    def get_device_activation(self,deveui):
+        client = api.DeviceServiceStub(self.channel)
+
+        #define the JWT key metadata
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        #construct request
+        req = api.GetDeviceActivationRequest()
+        req.dev_eui = deveui
+
+        return client.GetActivation(req, metadata=metadata)
 
     #this method aggregates all the result-sets in pagination from rpc List into one list
     @staticmethod
