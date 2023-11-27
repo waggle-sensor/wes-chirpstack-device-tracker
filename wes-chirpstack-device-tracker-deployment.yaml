@@ -47,3 +47,7 @@ spec:
               value: "wes-chirpstack-server:8080"
             - name: MANIFEST_FILE
               value: "/etc/waggle/node-manifest-v2.json"
+            - name: DJANGO_API_INTERFACE
+              value: "http://127.0.0.1:8000" #<- TODO: this will have to change in prod env.
+            - name: NODE_TOKEN #<- TODO: this has to be changed to use k3s secret. For right now hard code
+              value: "8ce294ce5bf65c95f7e4c635605122ef5ae27826" 
