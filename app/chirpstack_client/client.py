@@ -8,6 +8,9 @@ LIMIT = 100 #Max number of records to return in the result-set.
 OFFSET = LIMIT #Offset in the result-set (setting offset=limit goes to the next set of records aka next page)
 
 class ChirpstackClient:
+    """
+    Chirpstack client to call Api(s)
+    """
     def __init__(self, args):
         self.args = args
         self.server = self.args.chirpstack_api_interface
@@ -16,8 +19,10 @@ class ChirpstackClient:
         self.password = self.args.chirpstack_account_password
         self.auth_token = self.login()
 
-    #Login to the server to get jwt auth token
     def login(self):
+        """
+        Login to the server to get jwt auth token
+        """
         client = api.InternalServiceStub(self.channel)
 
         # Construct the Login request.
@@ -54,8 +59,10 @@ class ChirpstackClient:
 
         return resp.jwt
 
-    #list all devices by inputting the response of self.list_all_apps()
     def list_all_devices(self,app_resp):
+        """
+        List all devices by inputting the response of self.list_all_apps()
+        """
         client = api.DeviceServiceStub(self.channel)
 
         # Define the JWT key metadata.
@@ -74,8 +81,10 @@ class ChirpstackClient:
 
         return devices
 
-    #list all apps by inputting the response of self.list_tenants()
     def list_all_apps(self,tenant_resp):
+        """
+        List all apps by inputting the response of self.list_tenants()
+        """
         client = api.ApplicationServiceStub(self.channel)
 
         # Define the JWT key metadata.
@@ -95,8 +104,10 @@ class ChirpstackClient:
 
         return apps
 
-    #List all tenants
     def list_tenants(self):
+        """
+        List all tenants
+        """
         client = api.TenantServiceStub(self.channel)
 
         # Define the JWT key metadata.
@@ -111,8 +122,10 @@ class ChirpstackClient:
 
         return self.List_agg_pagination(client,req,metadata)
 
-    #get device profiles using profile id from list_all_devices() 
     def get_device_profile(self,device_profile_id):
+        """
+        Get device profiles using profile id from self.list_all_devices() 
+        """
         client = api.DeviceProfileServiceStub(self.channel)
 
         # Define the JWT key metadata.
@@ -124,8 +137,10 @@ class ChirpstackClient:
 
         return client.Get(req, metadata=metadata)
     
-    #get device Application key using dev eui (Only OTAA)
     def get_device_app_key(self,deveui):
+        """
+        Get device Application key using dev eui (Only OTAA)
+        """
         client = api.DeviceServiceStub(self.channel)
 
         #define the JWT key metadata
@@ -157,8 +172,10 @@ class ChirpstackClient:
         
         return resp.device_keys.nwk_key
 
-    #Get Activation returns the current activation details of the device (OTAA or ABP) using deveui
     def get_device_activation(self,deveui):
+        """
+        Get Activation returns the current activation details of the device (OTAA or ABP) using deveui
+        """
         client = api.DeviceServiceStub(self.channel)
 
         #define the JWT key metadata
@@ -170,9 +187,11 @@ class ChirpstackClient:
 
         return client.GetActivation(req, metadata=metadata)
 
-    #this method aggregates all the result-sets in pagination from rpc List into one list
     @staticmethod
     def List_agg_pagination(client,req,metadata):
+        """
+        This method aggregates all the result-sets in pagination from rpc List into one list
+        """
         records=[]
         while True:
             resp = client.List(req, metadata=metadata)

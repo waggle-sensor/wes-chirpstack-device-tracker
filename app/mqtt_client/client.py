@@ -4,13 +4,18 @@ import paho.mqtt.client as mqtt
 import time
 
 class MqttClient:
+    """
+    Mqtt Client to subcribe to data streams
+    """
     def __init__(self, args):
         self.args = args
         self.client = self.configure_client()
 
-    #configures the client
     def configure_client(self):
-        client_id = self.generate_client_id()
+        """
+        Configures the client
+        """
+        client_id = self.generate_client_id(self.args.vsn)
         client = mqtt.Client(client_id)
         client.on_subscribe = self.on_subscribe
         client.on_connect = self.on_connect
@@ -23,16 +28,19 @@ class MqttClient:
 
         return client
 
-    #method that generate client name (a combination of vsn, container name, and process id)
     @staticmethod
-    def generate_client_id():
-        VSN = os.getenv("WAGGLE_NODE_VSN", "NONE")
+    def generate_client_id(VSN):
+        """
+        Method that generates client name (a combination of vsn, container name, and process id)
+        """
         hostname = os.uname().nodename
         process_id = os.getpid()
         return f"{VSN}-{hostname}-{process_id}"
 
-    #method to run when connecting to mqtt broker
     def on_connect(self, client, userdata, flags, rc):
+        """
+        Method to run when connecting to mqtt broker
+        """
         if rc == 0:
             logging.info("Connected to MQTT broker")
             client.subscribe(self.args.mqtt_subscribe_topic)
@@ -40,21 +48,26 @@ class MqttClient:
             logging.error(f"Connection to MQTT broker failed with code {rc}") 
         return
 
-    #method to run when subcribing to mqtt broker
     @staticmethod
     def on_subscribe(client, obj, mid, granted_qos):
+        """
+        Method to run when subcribing to mqtt broker
+        """
         logging.info("Subscribed: " + str(mid) + " " + str(granted_qos))
         return
 
-    #method to run on log of client
     @staticmethod
     def on_log(client, obj, level, string):
+        """
+        Method to run on log of client
+        """
         logging.debug(string) #prints if args.debug = true
         return
 
-    #method to run when message is received
     def on_message(self, client, userdata, message):
-
+        """
+        Method to run when message is received
+        """
         #log message if debug flag was passed
         self.log_message(message) if args.debug else None
 
@@ -81,7 +94,7 @@ class MqttClient:
                 if lorawandevice["deveui"] == deviceInfo["devEui"]:
                     #update lorawan connection and device in both db and manifest file
                     break
-                    return
+                    return #<- remove, once done! 
                 else:
                     #try to retrieve device from db
                         #if not found create device in both db and manifest file
@@ -89,21 +102,22 @@ class MqttClient:
                     #create lorawan connection with device in both db and manifest file
                     #create lorawan connection and device in both db and manifest file <-- make sure this is right
                     #!!!! TODO: this is not right has to be outside the loop!
-                    return
+                    return #<- remove, once done! 
         else:
             #try to retrieve device from db
                 #if not found create device in db
                 #else update device in db
             #create lorawan connection with device in both db and manifest file
-            return
+            return #<- remove, once done! 
 
 
         return
 
-    #log message received from mqtt broker for debugging
     @staticmethod
     def log_message(message):
-
+        """
+        Log message received from mqtt broker for debugging
+        """
         #parse message for metadata and deviceInfo. 
         result = self.parse_message(message)
         if result is not None:
@@ -128,10 +142,11 @@ class MqttClient:
 
         return
 
-    #parse message for metadata and device info
     @staticmethod
     def parse_message(message):
-
+        """
+        Parse message for metadata and device info
+        """
         try: #get metadata and try to get device info
             metadata = parse_message_payload(message.payload.decode("utf-8"))
             temp = metadata["deviceInfo"]
@@ -142,8 +157,10 @@ class MqttClient:
 
         return (metadata, deviceInfo)
 
-    #Connect to MQTT broker
     def run(self):
+        """
+        Connect to MQTT broker
+        """
         logging.info(f"connecting [{self.args.mqtt_server_ip}:{self.args.mqtt_server_port}]...")
         self.client.connect(host=self.args.mqtt_server_ip, port=self.args.mqtt_server_port, bind_address="0.0.0.0")
         logging.info("waiting for callback...")
