@@ -75,4 +75,32 @@ class DjangoClient:
         response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
         return response.json()
 
-    #TODO: add lorawan keys APIs
+    def get_lk(self, dev_eui):
+        """
+        Get LoRaWAN key using dev EUI
+        """
+        api_endpoint = f"lorawankeys/{self.vsn}/{dev_eui}/"
+        api_url = urljoin(self.server, api_endpoint)
+        response = requests.get(api_url, headers=self.auth_header)
+        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        return response.json()
+
+    def create_lk(self, data):
+        """
+        Create LoRaWAN key
+        """
+        api_endpoint = "lorawankeys/create/"
+        api_url = urljoin(self.server, api_endpoint)
+        response = requests.post(api_url, headers=self.auth_header, json=data)
+        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        return response.json()
+
+    def update_lk(self, dev_eui, data):
+        """
+        Update LoRaWAN key
+        """
+        api_endpoint = f"lorawankeys/update/{self.vsn}/{dev_eui}/"
+        api_url = urljoin(self.server, api_endpoint)
+        response = requests.patch(api_url, headers=self.auth_header, json=data)
+        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        return response.json()

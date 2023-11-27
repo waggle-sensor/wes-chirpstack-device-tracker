@@ -4,8 +4,8 @@ from app.django_client import DjangoClient
 
 DEV_EUI = 123456789
 DJANGO_API_INTERFACE = "http://127.0.0.1:8000"
-VSN = "W031"
-NODE_TOKEN = "8ce294ce5bf65c95f7e4c635605122ef5ae27826"
+VSN = "W030"
+NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
 
 class TestDjangoClient(unittest.TestCase):
     def setUp(self):
@@ -19,10 +19,17 @@ class TestDjangoClient(unittest.TestCase):
         Mocks the requests.get method in django client's get_lc method to test it
         """
         mock_response = Mock()
-        mock_response.json.return_value = {'id': 1, 'node': 'W030', 'lorawan_device': '123456789', 
-        'connection_name': 'test', 'created_at': '2023-11-03T20:49:56.290798Z', 
-        'last_seen_at': '2023-11-03T20:49:42Z', 'margin': '25.00', 'expected_uplink_interval_sec': 1, 
-        'connection_type': 'OTAA'}
+        mock_response.json.return_value = {
+            'id': 1, 
+            'node': 'W030', 
+            'lorawan_device': '123456789', 
+            'connection_name': 'test', 
+            'created_at': '2023-11-03T20:49:56.290798Z', 
+            'last_seen_at': '2023-11-03T20:49:42Z', 
+            'margin': '25.00', 
+            'expected_uplink_interval_sec': 1, 
+            'connection_type': 'OTAA'
+        }
         mock_get.return_value = mock_response
 
         # Call the method under test
@@ -129,6 +136,70 @@ class TestDjangoClient(unittest.TestCase):
         # Assertions
         mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/update/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, {"message": "LorawanDevice updated successfully"})
+
+    @patch("app.django_client.requests.get")
+    def test_get_lk(self, mock_get):
+        """
+        Mocks the requests.get method in django client's get_lk method to test it
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "id":9,
+            "lorawan_connection":"W030-test-123456789",
+            "app_key":"12345", 
+            "network_Key":"12345",
+            "app_session_key":"12345",
+            "dev_address":"12345"
+        }
+        mock_get.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.get_lk(dev_eui=DEV_EUI)
+
+        # Assertions
+        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
+        self.assertEqual(result, {"id":9,"lorawan_connection":"W030-test-123456789","app_key":"12345", 
+        "network_Key":"12345","app_session_key":"12345","dev_address":"12345"})
+
+    @patch("app.django_client.requests.post")
+    def test_create_lk(self, mock_post):
+        """
+        Mocks the requests.post method in django client's create_lk method to test it
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = {"message": "Lorawan Key created successfully"}
+        mock_post.return_value = mock_response
+
+        # Call the method under test
+        create_data = {        
+            "lorawan_connection": "W030-test-123456789", 
+            "app_key": "12345",         
+            "network_Key": "12345",           
+            "app_session_key": "12345",
+            "dev_address": "12345"             
+        }
+        result = self.django_client.create_lk(data=create_data)
+
+        # Assertions
+        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/create/", headers=self.django_client.auth_header, json=create_data)
+        self.assertEqual(result, {"message": "Lorawan Key created successfully"})
+
+    @patch("app.django_client.requests.patch")
+    def test_update_lk(self, mock_patch):
+        """
+        Mocks the requests.patch method in django client's update_lk method to test it
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = {"message": "LorawanKey updated successfully"}
+        mock_patch.return_value = mock_response
+
+        # Call the method under test
+        data = { "app_key": "1556"}
+        result = self.django_client.update_lk(dev_eui=DEV_EUI, data=data)
+
+        # Assertions
+        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/update/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        self.assertEqual(result, {"message": "LorawanKey updated successfully"})
 
 if __name__ == "__main__":
     unittest.main()
