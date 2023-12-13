@@ -100,8 +100,7 @@ class TestListAllDevices(unittest.TestCase):
         Test list_all_devices() method's happy path by mocking list_all_apps() reponse and List_agg_pagination()
         """
 
-        # Mock the DeviceServiceStub and List_agg_pagination
-        mock_device_service_stub = Mock()
+        # Mock List_agg_pagination
         mock_list_agg_pagination = Mock(return_value=["device1", "device2"]) #Example
 
         with patch.object(ChirpstackClient, 'List_agg_pagination', mock_list_agg_pagination):
@@ -132,8 +131,7 @@ class TestListAllApps(unittest.TestCase):
         Test list_all_apps() method's happy path by mocking list_tenants() reponse and List_agg_pagination()
         """
 
-        # Mock the DeviceServiceStub and List_agg_pagination
-        mock_device_service_stub = Mock()
+        # Mock List_agg_pagination
         mock_list_agg_pagination = Mock(return_value=["app1", "app2"]) 
 
         with patch.object(ChirpstackClient, 'List_agg_pagination', mock_list_agg_pagination):
@@ -144,12 +142,38 @@ class TestListAllApps(unittest.TestCase):
             mock_tenant_resp = [Mock(id="tenant1"), Mock(id="tenant2")]
 
             # Call list_all_devices
-            devices = client.list_all_apps(mock_tenant_resp)
+            apps = client.list_all_apps(mock_tenant_resp)
 
             # Assert the result
-            self.assertEqual(devices, ['app1', 'app2', 'app1', 'app2'])
+            self.assertEqual(apps, ['app1', 'app2', 'app1', 'app2'])
 
+class TestListTenants(unittest.TestCase):
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
 
+    @patch('app.chirpstack_client.api.InternalServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_list_all_apps_happy_path(self, mock_insecure_channel, mock_internal_service_stub):
+        """
+        Test list_tenants() method's happy path by mocking List_agg_pagination()
+        """
+
+        # Mock List_agg_pagination
+        mock_list_agg_pagination = Mock(return_value=["Tenant1", "Tenant1"]) 
+
+        with patch.object(ChirpstackClient, 'List_agg_pagination', mock_list_agg_pagination):
+            # Create a ChirpstackClient instance
+            client = ChirpstackClient(self.mock_args)
+
+            # Call list_tenants()
+            tenants = client.list_tenants()
+
+            # Assert the result
+            self.assertEqual(tenants, ["Tenant1", "Tenant1"])
 
 if __name__ == "__main__":
     unittest.main()
