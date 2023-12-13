@@ -1,9 +1,10 @@
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 from app.django_client import DjangoClient
 
 DEV_EUI = 123456789
-DJANGO_API_INTERFACE = "http://127.0.0.1:8000"
+DJANGO_API_INTERFACE = "https://auth.sagecontinuum.org"
+
 VSN = "W030"
 NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
 
