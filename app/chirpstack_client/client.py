@@ -1,4 +1,5 @@
 import grpc
+from grpc import _channel as channel
 from chirpstack_api import api
 import logging
 import sys
@@ -34,7 +35,7 @@ class ChirpstackClient:
         logging.info(f"connecting {self.server}...")
         try:
             resp = client.Login(req)
-        except grpc._channel._InactiveRpcError as e:
+        except channel._InactiveRpcError as e:
             # Handle the exception here
             status_code = e.code()
             details = e.details()
