@@ -175,5 +175,232 @@ class TestListTenants(unittest.TestCase):
             # Assert the result
             self.assertEqual(tenants, ["Tenant1", "Tenant1"])
 
+class TestGetDeviceProfile(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_profile_happy_path(self, mock_insecure_channel, mock_device_profile_service_stub):
+        """
+        Test get_device_profile() method's happy path
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceProfileServiceStub
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = Mock(device_profile_info="mock_device_profile_info")
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        device_profile_info = client.get_device_profile(mock_device_profile_id)
+
+        # Assert the result
+        self.assertEqual(device_profile_info.device_profile_info, "mock_device_profile_info")
+
+class TestGetDeviceAppKey(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_app_key_happy_path(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device_app_key() method's happy path
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.GetKeys.return_value = Mock(device_keys=Mock(nwk_key="mock_app_key"))
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        app_key = client.get_device_app_key(mock_dev_eui)
+
+        # Assert the result
+        self.assertEqual(app_key, "mock_app_key")
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_app_key_failure_NOTFOUND(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test the get_device_app_key() method with a InactiveRpcError exception with a grpc.StatusCode.NOT_FOUND
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
+        mock_device_service_stub_instance.GetKeys.side_effect = channel._InactiveRpcError(
+            MagicMock(code=lambda: grpc.StatusCode.NOT_FOUND, details=lambda: 'Not found')
+        )
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        app_key = client.get_device_app_key(mock_dev_eui)
+
+        # Assert the result
+        self.assertIsNone(app_key)
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_app_key_failure_Other(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test the get_device_app_key() method with a InactiveRpcError exception thats other than a grpc.StatusCode.NOT_FOUND
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
+        mock_device_service_stub_instance.GetKeys.side_effect = channel._InactiveRpcError(
+            MagicMock(code=lambda: grpc.StatusCode.UNAUTHENTICATED, details=lambda: 'Invalid credentials')
+        )
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        app_key = client.get_device_app_key(mock_dev_eui)
+
+        # Assert the result
+        self.assertIsNone(app_key)
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_app_key_failure_Exception(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test the get_device_app_key() method with a general exception
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
+        mock_device_service_stub_instance.GetKeys.side_effect = Exception("Test exception")
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        app_key = client.get_device_app_key(mock_dev_eui)
+
+        # Assert the result
+        self.assertIsNone(app_key)
+
+class TestGetDeviceActivation(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+    
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_activation_happy_path(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device_activation() method's happy path
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.GetActivation.return_value = Mock(activation_details="mock_activation_details")
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        response = client.get_device_activation(mock_dev_eui)
+
+        # Assert the result
+        self.assertEqual(response.activation_details, "mock_activation_details")
+
+class TestListAggPagination(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_list_agg_pagination(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test list_agg_pagination() method's happy path
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_list_response = Mock(result=["result_page1", "result_page2"], total_count=2)
+        mock_device_service_stub_instance.List.return_value = mock_list_response
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the request and metadata
+        mock_req = Mock(offset=0,limit=1)
+        mock_metadata = [("authorization", "Bearer mock_jwt")]
+
+        # Call List_agg_pagination
+        aggregated_records = ChirpstackClient.List_agg_pagination(mock_device_service_stub_instance, mock_req, mock_metadata)
+
+        # Assert the result
+        self.assertEqual(aggregated_records, ["result_page1", "result_page2"])
+
 if __name__ == "__main__":
     unittest.main()
