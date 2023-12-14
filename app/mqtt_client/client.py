@@ -2,6 +2,7 @@ import logging
 import os
 import paho.mqtt.client as mqtt
 import time
+from .parse import *
 
 class MqttClient:
     """
@@ -112,8 +113,7 @@ class MqttClient:
 
         return
 
-    @staticmethod
-    def log_message(message):
+    def log_message(self, message):
         """
         Log message received from mqtt broker for debugging
         """
