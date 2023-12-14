@@ -42,7 +42,36 @@ class TestLogin(unittest.TestCase):
 
     @patch('app.chirpstack_client.grpc.insecure_channel')
     @patch('app.chirpstack_client.api.InternalServiceStub')
-    def test_login_failure_RpcError_grpcStatusCodeUNAUTHENTICATED(self, mock_internal_service_stub, mock_insecure_channel):
+    def test_login_failure_RpcError_grpcStatusCodeUNAVAILABLE(self, mock_internal_service_stub, mock_insecure_channel):
+        """
+        Test the login method with a RpcError exception with a grpc.StatusCode.UNAVAILABLE
+        """
+        args = MagicMock()
+        args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+
+        # Mocking grpc login response
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAVAILABLE
+        mock_rpc_error.details = lambda: 'unavailable'
+        mock_internal_service_stub.return_value.Login.side_effect = mock_rpc_error
+
+        # Assert Logs
+        with self.assertLogs(level='ERROR') as log:
+            # Creating ChirpstackClient instance
+            with self.assertRaises(SystemExit) as cm:
+                ChirpstackClient(args)
+            self.assertEqual(len(log.output), 2)
+            self.assertEqual(len(log.records), 2)
+            self.assertIn("Service is unavailable. This might be a DNS resolution issue.", log.output[0])
+
+        # Assert that the system exit code is 1 (indicating failure)
+        self.assertEqual(cm.exception.code, 1)
+
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('app.chirpstack_client.api.InternalServiceStub')
+    def test_login_failure_RpcError_grpcStatusCodeOther(self, mock_internal_service_stub, mock_insecure_channel):
         """
         Test the login method with a RpcError exception with a grpc.StatusCode.UNAUTHENTICATED
         """
@@ -57,9 +86,14 @@ class TestLogin(unittest.TestCase):
         mock_rpc_error.details = lambda: 'Invalid credentials'
         mock_internal_service_stub.return_value.Login.side_effect = mock_rpc_error
 
-        # Creating ChirpstackClient instance
-        with self.assertRaises(SystemExit) as cm:
-            ChirpstackClient(args)
+        # Assert Logs
+        with self.assertLogs(level='ERROR') as log:
+            # Creating ChirpstackClient instance
+            with self.assertRaises(SystemExit) as cm:
+                ChirpstackClient(args)
+            self.assertEqual(len(log.output), 2)
+            self.assertEqual(len(log.records), 2)
+            self.assertIn(f"An error occurred with status code {grpc.StatusCode.UNAUTHENTICATED}", log.output[0])
 
         # Assert that the system exit code is 1 (indicating failure)
         self.assertEqual(cm.exception.code, 1)
@@ -76,11 +110,17 @@ class TestLogin(unittest.TestCase):
         args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
 
         # Mocking grpc login response to raise a general Exception
-        mock_internal_service_stub.return_value.Login.side_effect = Exception("Test exception")
+        e = Exception("Test exception")
+        mock_internal_service_stub.return_value.Login.side_effect = e
 
-        # Creating ChirpstackClient instance
-        with self.assertRaises(SystemExit) as cm:
-            ChirpstackClient(args)
+        # Assert Logs
+        with self.assertLogs(level='ERROR') as log:
+            # Creating ChirpstackClient instance
+            with self.assertRaises(SystemExit) as cm:
+                ChirpstackClient(args)
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn(f"An error occurred: {e}", log.output[0])
 
         # Assert that the system exit code is 1 (indicating failure)
         self.assertEqual(cm.exception.code, 1)
@@ -278,8 +318,9 @@ class TestGetDeviceAppKey(unittest.TestCase):
             self.assertEqual(len(log.output), 2)
             self.assertEqual(len(log.records), 2)
             self.assertIn('The device key does not exist. It is possible that the device is using ABP which does not use an application key', log.output[0])
-            # Assert the result
-            self.assertIsNone(app_key)
+        
+        # Assert the result
+        self.assertIsNone(app_key)
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
@@ -312,8 +353,9 @@ class TestGetDeviceAppKey(unittest.TestCase):
             self.assertEqual(len(log.output), 2)
             self.assertEqual(len(log.records), 2)
             self.assertIn(f"An error occurred with status code {grpc.StatusCode.UNAUTHENTICATED}", log.output[0])
-            # Assert the result
-            self.assertIsNone(app_key)
+       
+        # Assert the result
+        self.assertIsNone(app_key)
 
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
@@ -329,7 +371,8 @@ class TestGetDeviceAppKey(unittest.TestCase):
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
         # Mock the GetKeys method to raise general exception
-        mock_device_service_stub_instance.GetKeys.side_effect = Exception("Test exception")
+        e = Exception("Test exception")
+        mock_device_service_stub_instance.GetKeys.side_effect = e
 
         # Create a ChirpstackClient instance
         client = ChirpstackClient(self.mock_args)
@@ -337,8 +380,13 @@ class TestGetDeviceAppKey(unittest.TestCase):
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
 
-        # Call get_device_app_key
-        app_key = client.get_device_app_key(mock_dev_eui)
+        with self.assertLogs(level='ERROR') as log:
+            # Call get_device_app_key
+            app_key = client.get_device_app_key(mock_dev_eui)
+            # Assert logs
+            self.assertEqual(len(log.output), 1)
+            self.assertEqual(len(log.records), 1)
+            self.assertIn(f"An error occurred: {e}", log.output[0])
 
         # Assert the result
         self.assertIsNone(app_key)
