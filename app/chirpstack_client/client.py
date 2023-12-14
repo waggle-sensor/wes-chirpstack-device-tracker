@@ -42,16 +42,16 @@ class ChirpstackClient:
             
             if status_code == grpc.StatusCode.UNAVAILABLE:
                 logging.error("Service is unavailable. This might be a DNS resolution issue.")
-                logging.error("Details: %s", details)
+                logging.error(f"Details: {details}")
             else:
                 logging.error(f"An error occurred with status code {status_code}")
-                logging.error("Details: %s", details)
+                logging.error(f"Details: {details}")
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
         except Exception as e:
             # Handle other exceptions if needed
-            logging.error("An error occurred: %s", e)
+            logging.error(f"An error occurred: {e}")
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
@@ -160,15 +160,15 @@ class ChirpstackClient:
 
             if status_code == grpc.StatusCode.NOT_FOUND:
                 logging.error("The device key does not exist. It is possible that the device is using ABP which does not use an application key")
-                logging.error("Details: %s", details)
+                logging.error(f"Details: {details}")
             else:
                 logging.error(f"An error occurred with status code {status_code}")
-                logging.error("Details: %s", details)
+                logging.error(f"Details: {details}")
 
             return
         except Exception as e:
             # Handle other exceptions
-            logging.error("An error occurred: %s", e)
+            logging.error(f"An error occurred: {e}")
             return
         
         return resp.device_keys.nwk_key
