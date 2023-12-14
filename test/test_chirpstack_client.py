@@ -42,9 +42,9 @@ class TestLogin(unittest.TestCase):
 
     @patch('app.chirpstack_client.grpc.insecure_channel')
     @patch('app.chirpstack_client.api.InternalServiceStub')
-    def test_login_failure_InactiveRpcError_grpcStatusCodeUNAUTHENTICATED(self, mock_internal_service_stub, mock_insecure_channel):
+    def test_login_failure_RpcError_grpcStatusCodeUNAUTHENTICATED(self, mock_internal_service_stub, mock_insecure_channel):
         """
-        Test the login method with a InactiveRpcError exception with a grpc.StatusCode.UNAUTHENTICATED
+        Test the login method with a RpcError exception with a grpc.StatusCode.UNAUTHENTICATED
         """
         args = MagicMock()
         args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
@@ -52,9 +52,10 @@ class TestLogin(unittest.TestCase):
         args.chirpstack_account_password = 'wrong_password'
 
         # Mocking grpc login response
-        mock_internal_service_stub.return_value.Login.side_effect = channel._InactiveRpcError(
-            MagicMock(code=lambda: grpc.StatusCode.UNAUTHENTICATED, details=lambda: 'Invalid credentials')
-        )
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'Invalid credentials'
+        mock_internal_service_stub.return_value.Login.side_effect = mock_rpc_error
 
         # Creating ChirpstackClient instance
         with self.assertRaises(SystemExit) as cm:
@@ -249,7 +250,7 @@ class TestGetDeviceAppKey(unittest.TestCase):
     @patch('app.chirpstack_client.grpc.insecure_channel')
     def test_get_device_app_key_failure_NOTFOUND(self, mock_insecure_channel, mock_device_service_stub):
         """
-        Test the get_device_app_key() method with a InactiveRpcError exception with a grpc.StatusCode.NOT_FOUND
+        Test the get_device_app_key() method with a RpcError exception with a grpc.StatusCode.NOT_FOUND
         """
         # Mock the gRPC channel and login response
         mock_channel = Mock()
@@ -257,10 +258,12 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
-        mock_device_service_stub_instance.GetKeys.side_effect = channel._InactiveRpcError(
-            MagicMock(code=lambda: grpc.StatusCode.NOT_FOUND, details=lambda: 'Not found')
-        )
+
+        # Mock the GetKeys method to raise grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.NOT_FOUND
+        mock_rpc_error.details = lambda: 'not found'
+        mock_device_service_stub_instance.GetKeys.side_effect = mock_rpc_error
 
         # Create a ChirpstackClient instance
         client = ChirpstackClient(self.mock_args)
@@ -268,17 +271,21 @@ class TestGetDeviceAppKey(unittest.TestCase):
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
 
-        # Call get_device_app_key
-        app_key = client.get_device_app_key(mock_dev_eui)
-
-        # Assert the result
-        self.assertIsNone(app_key)
+        with self.assertLogs(level='ERROR') as log:
+            # Call get_device_app_key
+            app_key = client.get_device_app_key(mock_dev_eui)
+            # Assert logs
+            self.assertEqual(len(log.output), 2)
+            self.assertEqual(len(log.records), 2)
+            self.assertIn('The device key does not exist. It is possible that the device is using ABP which does not use an application key', log.output[0])
+            # Assert the result
+            self.assertIsNone(app_key)
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
     def test_get_device_app_key_failure_Other(self, mock_insecure_channel, mock_device_service_stub):
         """
-        Test the get_device_app_key() method with a InactiveRpcError exception thats other than a grpc.StatusCode.NOT_FOUND
+        Test the get_device_app_key() method with a RpcError exception thats other than a grpc.StatusCode.UNAUTHENTICATED
         """
         # Mock the gRPC channel and login response
         mock_channel = Mock()
@@ -286,22 +293,28 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
-        mock_device_service_stub_instance.GetKeys.side_effect = channel._InactiveRpcError(
-            MagicMock(code=lambda: grpc.StatusCode.UNAUTHENTICATED, details=lambda: 'Invalid credentials')
-        )
+        # Mock the GetKeys method to raise grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'Invalid credentials'
+        mock_device_service_stub_instance.GetKeys.side_effect = mock_rpc_error
 
         # Create a ChirpstackClient instance
         client = ChirpstackClient(self.mock_args)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
+    
+        with self.assertLogs(level='ERROR') as log:
+            # Call get_device_app_key
+            app_key = client.get_device_app_key(mock_dev_eui)
+            # Assert logs
+            self.assertEqual(len(log.output), 2)
+            self.assertEqual(len(log.records), 2)
+            self.assertIn(f"An error occurred with status code {grpc.StatusCode.UNAUTHENTICATED}", log.output[0])
+            # Assert the result
+            self.assertIsNone(app_key)
 
-        # Call get_device_app_key
-        app_key = client.get_device_app_key(mock_dev_eui)
-
-        # Assert the result
-        self.assertIsNone(app_key)
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
@@ -315,7 +328,7 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        # Mock the GetKeys method to raise grpc._channel._InactiveRpcError
+        # Mock the GetKeys method to raise general exception
         mock_device_service_stub_instance.GetKeys.side_effect = Exception("Test exception")
 
         # Create a ChirpstackClient instance

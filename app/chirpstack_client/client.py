@@ -35,7 +35,7 @@ class ChirpstackClient:
         logging.info(f"connecting {self.server}...")
         try:
             resp = client.Login(req)
-        except channel._InactiveRpcError as e:
+        except grpc.RpcError as e:
             # Handle the exception here
             status_code = e.code()
             details = e.details()
@@ -153,7 +153,7 @@ class ChirpstackClient:
 
         try:
             resp = client.GetKeys(req, metadata=metadata)
-        except grpc._channel._InactiveRpcError as e:
+        except grpc.RpcError as e:
 
             status_code = e.code()
             details = e.details()
