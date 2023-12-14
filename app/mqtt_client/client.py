@@ -15,7 +15,7 @@ class MqttClient:
         """
         Configures the client
         """
-        client_id = self.generate_client_id(self.args.vsn)
+        client_id = self.generate_client_id()
         client = mqtt.Client(client_id)
         client.on_subscribe = self.on_subscribe
         client.on_connect = self.on_connect
@@ -28,14 +28,13 @@ class MqttClient:
 
         return client
 
-    @staticmethod
-    def generate_client_id(VSN):
+    def generate_client_id(self):
         """
         Method that generates client name (a combination of vsn, container name, and process id)
         """
         hostname = os.uname().nodename
         process_id = os.getpid()
-        return f"{VSN}-{hostname}-{process_id}"
+        return f"{self.args.vsn}-{hostname}-{process_id}"
 
     def on_connect(self, client, userdata, flags, rc):
         """
