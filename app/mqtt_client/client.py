@@ -74,7 +74,10 @@ class MqttClient:
         #parse message for metadata and deviceInfo. 
         result = self.parse_message(message)
         if result is not None:
-            metadata, deviceInfo = result
+            try:
+                metadata, deviceInfo = result
+            except ValueError as e:
+                logging.error(f"Message did not parse correctly, {e}")
         else:
             return
 
@@ -120,7 +123,11 @@ class MqttClient:
         #parse message for metadata and deviceInfo. 
         result = self.parse_message(message)
         if result is not None:
-            metadata, deviceInfo = result
+            try:
+                metadata, deviceInfo = result
+            except ValueError as e:
+                logging.error(f"Message did not parse correctly, {e}")
+                return
         else:
             return
 
