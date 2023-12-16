@@ -4,7 +4,6 @@ from app.mqtt_client import MqttClient
 import paho.mqtt.client as mqtt
 from collections import namedtuple
 from msg_sample import MESSAGE #TODO: use factories or add more sample data in txt/csv file
-import json
 
 class TestConfigureClient(unittest.TestCase):
 
@@ -174,15 +173,13 @@ class TestLogMessage(unittest.TestCase):
         mqtt_client = MqttClient(mock_args)
 
         #Mock the message
-        class Message:
-            def __init__(self, payload):
-                self.payload = payload
-        Msg = Message(f'{MESSAGE}'.encode("utf-8"))
+        Message = Mock()
+        Message.payload = f'{MESSAGE}'.encode("utf-8")
 
         # Assert Logs
         with self.assertLogs(level='DEBUG') as log:
             # Call the log_message method
-            mqtt_client.log_message(Msg)
+            mqtt_client.log_message(Message)
             self.assertEqual(len(log.output), 6)
             self.assertEqual(len(log.records), 6)
             self.assertIn("Signal Performance:", log.output[1])
