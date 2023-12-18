@@ -343,12 +343,5 @@ class TestGetSignalPerformanceValues(unittest.TestCase):
         with self.assertRaises(ValueError):
             Get_Signal_Performance_values(message_dict)
 
-
-
-
-
-
-
-
 if __name__ == "__main__":
     unittest.main()
