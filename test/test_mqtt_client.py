@@ -1,9 +1,9 @@
 import unittest
 from unittest.mock import Mock, patch, MagicMock
-from app.mqtt_client import MqttClient
+from app.mqtt_client import *
 import paho.mqtt.client as mqtt
 from collections import namedtuple
-from msg_sample import MESSAGE #TODO: use factories or add more sample data in txt/csv file
+from msg_sample import MESSAGE #TODO: add more sample data in txt/csv file
 
 class TestConfigureClient(unittest.TestCase):
 
@@ -162,46 +162,186 @@ class TestOnMessage(unittest.TestCase):
 
 class TestLogMessage(unittest.TestCase):
 
+    def setUp(self):
+        # Mock the MqttClient instance
+        mock_args = Mock()
+        self.mqtt_client = MqttClient(mock_args)
+        #Mock the message
+        self.Message = Mock()
+        self.Message.payload = f'{MESSAGE}'.encode("utf-8")
+
     @patch('app.mqtt_client.logging')
     def test_log_message_happy_path(self, mock_logging):
         """
         Test log_message() happy path
         """
-
-        # Mock the MqttClient instance
-        mock_args = Mock()
-        mqtt_client = MqttClient(mock_args)
-
-        #Mock the message
-        Message = Mock()
-        Message.payload = f'{MESSAGE}'.encode("utf-8")
+        expected_data = (
+            "LORAWAN Message received by device Test device with deveui 0101010101010101:" + 
+            self.Message.payload.decode("utf-8")
+        )
 
         # Assert Logs
         with self.assertLogs(level='DEBUG') as log:
             # Call the log_message method
-            mqtt_client.log_message(Message)
+            self.mqtt_client.log_message(self.Message)
             self.assertEqual(len(log.output), 6)
             self.assertEqual(len(log.records), 6)
+            self.assertIn(expected_data, log.output[0])
             self.assertIn("Signal Performance:", log.output[1])
 
-        # Assert that logging.debug was called with the expected data
-        # expected_data = (
-        #     "LORAWAN Message received by device mock_device with deveui mock_devEui:" + 
-        #     message.payload.decode("utf-8")
-        # )
-        # mock_logging.debug.assert_any_call(expected_data)
+    @patch('app.mqtt_client.MqttClient.parse_message')
+    def test_log_message_Value_Error(self, mock_parse_message):
+        """
+        Test log_message() value error when parse_message returns less values to unpack
+        """
+        #Mock the return value for parse_message
+        mock_parse_message.return_value = ({}, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
 
-        # Assert that logging.debug was called with Signal Performance information
-        # mock_logging.debug.assert_any_call("Signal Performance:")
-        # mock_logging.debug.assert_any_call("gatewayId: mock_gateway")
-        # mock_logging.debug.assert_any_call("  rssi: -50")
-        # mock_logging.debug.assert_any_call("  snr: 10")
-        # mock_logging.debug.assert_any_call("spreading factor: 12")
+        # Assert Logs
+        with self.assertLogs(level='ERROR') as log:
+            # Call the log_message method
+            with self.assertRaises(ValueError) as ve:
+                self.mqtt_client.log_message(self.Message)
+                self.assertEqual(len(log.output), 1)
+                self.assertEqual(len(log.records), 1)
+                self.assertIn(f"Message did not parse correctly, {ve}", log.output[0])
 
 
-if __name__ == '__main__':
-    unittest.main()
+class TestParseMessage(unittest.TestCase):
 
+    def setUp(self):
+        # Mock the MqttClient instance
+        mock_args = Mock()
+        self.mqtt_client = MqttClient(mock_args)
+
+    @patch('app.mqtt_client.parse_message_payload')
+    def test_parse_message_returns_none(self, mock_parse_message_payload):
+        """
+        Test parse_message() returns none when parse_message_payload() returns an exception
+        """
+        # Mock the parse_message function Exception
+        mock_parse_message_payload.side_effect = Exception("Mock decoding error")
+
+        # Create a mock message object
+        message = Mock()
+        message.payload.decode.side_effect = Exception("Mock decoding error")
+
+        # Call the parse_message function
+        result = self.mqtt_client.parse_message(message)
+
+        # Assert that the result is None
+        self.assertIsNone(result)
+
+class TestMqttClientRun(unittest.TestCase):
+
+    @patch('app.mqtt_client.mqtt.Client')
+    def test_run_happy_path(self, mock_mqtt_client):
+        """
+        Test the client's run() method's happy path
+        """
+        # Mock the connect method of the MQTT client
+        mock_connect = mock_mqtt_client.return_value.connect
+        mock_loop_forever = mock_mqtt_client.return_value.loop_forever
+
+        # Create a mock arguments object
+        mock_args = Mock(mqtt_server_ip='mock_ip', mqtt_server_port=1883, mqtt_subscribe_topic='mock_topic', vsn='mock_vsn')
+        # Create an instance of MqttClient with the mock arguments
+        mqtt_client = MqttClient(mock_args)
+
+        # Assert Logs
+        with self.assertLogs(level='INFO') as log:
+            # Call the run method
+            mqtt_client.run()
+            self.assertEqual(len(log.output), 2)
+            self.assertEqual(len(log.records), 2)
+            self.assertIn(f"connecting [{mock_args.mqtt_server_ip}:{mock_args.mqtt_server_port}]...", log.output[0])
+            self.assertIn("waiting for callback...", log.output[1])
+
+        # Assert that the connect method was called with the correct arguments
+        mock_connect.assert_called_once_with(host='mock_ip', port=1883, bind_address='0.0.0.0')
+
+        # Assert that the loop_forever method was called
+        mock_loop_forever.assert_called_once()
+
+class TestGetDevice(unittest.TestCase):
+
+    def test_get_device_valid_input(self):
+        """
+        Test Get_device() happy path
+        """
+        # Mock the input message_dict
+        message_dict = {'deviceInfo': {'deviceName': 'TestDevice', 'devEui': '0123456789ABCDEF'}}
+
+        # Call the Get_device function
+        result = Get_device(message_dict)
+
+        # Assert that the result is as expected
+        self.assertEqual(result, {'deviceName': 'TestDevice', 'devEui': '0123456789ABCDEF'})
+
+    def test_get_device_missing_device_info(self):
+        """
+        Test Get_device() when message does not have deviceInfo
+        """
+        # Mock the input message_dict with missing deviceInfo
+        message_dict = {}
+
+        # Call the Get_device function and expect a ValueError
+        with self.assertRaises(ValueError):
+            Get_device(message_dict)
+
+    def test_get_device_missing_device_info_values(self):
+        """
+        Test Get_device() when deviceInfo is missing required values
+        """
+        # Mock the input message_dict with deviceInfo, but missing required values
+        message_dict = {'deviceInfo': {}}
+
+        # Call the Get_device function and expect a ValueError
+        with self.assertRaises(ValueError):
+            Get_device(message_dict)
+
+class TestGetSignalPerformanceValues(unittest.TestCase):
+    def test_get_signal_performance_values_valid_input(self):
+        """
+        Test Get_Signal_Performance_values()'s happy path
+        """
+        # Mock the input message_dict with valid values
+        message_dict = {
+            'rxInfo': [{'gatewayId': 'mock_gateway', 'rssi': -50, 'snr': 10}],
+            'txInfo': {'modulation': {'lora': {'spreadingFactor': 12}}}
+        }
+
+        # Call the Get_Signal_Performance_values function
+        result = Get_Signal_Performance_values(message_dict)
+
+        # Assert that the result is as expected
+        expected_result = {
+            'rxInfo': [{'gatewayId': 'mock_gateway', 'rssi': -50, 'snr': 10}],
+            'spreadingFactor': 12
+        }
+        self.assertEqual(result, expected_result)
+
+    def test_get_signal_performance_values_missing_rx_info(self):
+        """
+        Test Get_Signal_Performance_values() when rxInfo is missing
+        """
+        # Mock the input message_dict with missing rxInfo
+        message_dict = {'txInfo': {'modulation': {'lora': {'spreadingFactor': 12}}}}
+
+        # Call the Get_Signal_Performance_values function and expect a ValueError
+        with self.assertRaises(ValueError):
+            Get_Signal_Performance_values(message_dict)
+
+    def test_get_signal_performance_values_missing_spreading_factor(self):
+        """
+        Test Get_Signal_Performance_values() when spreadingFactor is missing
+        """
+        # Mock the input message_dict with missing spreadingFactor
+        message_dict = {'rxInfo': [{'gatewayId': 'mock_gateway', 'rssi': -50, 'snr': 10}]}
+
+        # Call the Get_Signal_Performance_values function and expect a ValueError
+        with self.assertRaises(ValueError):
+            Get_Signal_Performance_values(message_dict)
 
 
 
