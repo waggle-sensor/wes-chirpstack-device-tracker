@@ -155,11 +155,9 @@ class MqttClient:
         """
         try: #get metadata and try to get device info
             metadata = parse_message_payload(message.payload.decode("utf-8"))
-            temp = metadata["deviceInfo"]
+            deviceInfo = Get_device(metadata)
         except:
             return None
-
-        deviceInfo = Get_device(metadata)
 
         return (metadata, deviceInfo)
 
