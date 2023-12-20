@@ -66,6 +66,26 @@ def main():
         default=os.getenv("NODE_TOKEN"),
         help="The Node's token to access Django server API interface.",
     )
+    parser.add_argument(
+        "--lorawan-connection-router",
+        default=os.getenv("LORAWANCONNECTION_ROUTER"),
+        help="API server's Lorawan Connection Router.",
+    )
+    parser.add_argument(
+        "--lorawan-key-router",
+        default=os.getenv("LORAWANKEY_ROUTER"),
+        help="API server's Lorawan Key Router.",
+    )
+    parser.add_argument(
+        "--lorawan-device-router",
+        default=os.getenv("LORAWANDEVICE_ROUTER"),
+        help="API server's Lorawan Device Router.",
+    )
+    parser.add_argument(
+        "--sensor-hardware-router",
+        default=os.getenv("SENSORHARDWARE_ROUTER"),
+        help="API server's Sensor Hardware Router.",
+    )
 
     #get args
     args = parser.parse_args()
