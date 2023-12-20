@@ -25,7 +25,7 @@ class DjangoClient:
         self.server = self.args.django_api_interface
         self.vsn = self.args.vsn
         self.auth_token = self.args.node_token
-        self.auth_header = {'Content-Type': 'application/json', "Authorization": f"node_auth {self.auth_token}"}
+        self.auth_header = {"Authorization": f"node_auth {self.auth_token}"}
 
     def get_lc(self, dev_eui: str) -> dict:
         """
@@ -41,7 +41,7 @@ class DjangoClient:
         api_endpoint = f"{self.LC_ROUTER}"
         return  self.call_api(HttpMethod.POST, api_endpoint, data)
 
-    def update_lc(self, dev_eui: str, dat: dict) -> dict:
+    def update_lc(self, dev_eui: str, data: dict) -> dict:
         """
         Update LoRaWAN connection
         """
@@ -118,7 +118,10 @@ class DjangoClient:
         api_url = urljoin(self.server, endpoint)
 
         try:
-            response = method(api_url, headers=self.auth_header, json=data)
+            if data is not None:
+                response = method(api_url, headers=self.auth_header, json=data)
+            else:
+                response = method(api_url, headers=self.auth_header)
         except ValueError as e:
             logging.error(f"Unsupported method: {e}")
             raise ValueError(f"Unsupported method: {e}")
