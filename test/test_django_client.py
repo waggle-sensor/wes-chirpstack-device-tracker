@@ -73,7 +73,7 @@ class TestDjangoClient(unittest.TestCase):
         Mocks the requests.patch method in django client's update_lc method to test it
         """
         mock_response = Mock()
-        mock_response.json.return_value = {"message":"LorawanConnection updated successfully"}
+        mock_response.json.return_value = {"test":"test"}
         mock_patch.return_value = mock_response
 
         # Call the method under test
@@ -81,8 +81,8 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_lc(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawanconnections/update/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
-        self.assertEqual(result, {"message":"LorawanConnection updated successfully"})
+        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        self.assertEqual(result, {"test":"test"})
 
     @patch("app.django_client.requests.get")
     def test_get_ld(self, mock_get):
@@ -118,7 +118,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_ld(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/create/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, {"message": "LorawanDevice created successfully"})
 
     @patch("app.django_client.requests.patch")
@@ -135,7 +135,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_ld(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/update/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, {"message": "LorawanDevice updated successfully"})
 
     @patch("app.django_client.requests.get")
@@ -182,7 +182,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_lk(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/create/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, {"message": "Lorawan Key created successfully"})
 
     @patch("app.django_client.requests.patch")
@@ -199,7 +199,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_lk(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/update/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, {"message": "LorawanKey updated successfully"})
 
 if __name__ == "__main__":
