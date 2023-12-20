@@ -4,6 +4,7 @@ from app.django_client import DjangoClient
 
 DEV_EUI = 123456789
 DJANGO_API_INTERFACE = "https://auth.sagecontinuum.org"
+HW_MODEL = "sfmx100"
 
 VSN = "W030"
 NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
@@ -201,6 +202,57 @@ class TestDjangoClient(unittest.TestCase):
         # Assertions
         mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, {"test": "test"})
+
+    @patch("app.django_client.HttpMethod.GET")
+    def test_get_sh(self, mock_get):
+        """
+        Mocks the requests.get method in django client's get_sh method to test it
+        """
+        mock_response = Mock()
+        mock_response.json.return_value = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
+        mock_get.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.get_sh(hw_model=HW_MODEL)
+
+        # Assertions
+        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header)
+        self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
+
+    @patch("app.django_client.HttpMethod.POST")
+    def test_create_sh(self, mock_post):
+        """
+        Mocks the requests.post method in django client's create_sh method to test it
+        """
+        create_data = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
+
+        mock_response = Mock()
+        mock_response.json.return_value = create_data
+        mock_post.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.create_sh(data=create_data)
+
+        # Assertions
+        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/", headers=self.django_client.auth_header, json=create_data)
+        self.assertEqual(result, create_data)
+
+    @patch("app.django_client.HttpMethod.PATCH")
+    def test_update_sh(self, mock_patch):
+        """
+        Mocks the requests.patch method in django client's update_sh method to test it
+        """
+        data = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
+        mock_response = Mock()
+        mock_response.json.return_value = data
+        mock_patch.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.update_sh(hw_model=HW_MODEL, data=data)
+
+        # Assertions
+        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header, json=data)
+        self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
 if __name__ == "__main__":
     unittest.main()
