@@ -32,7 +32,7 @@ class DjangoClient:
         api_endpoint = "lorawanconnections/create/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.post(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status()  
         return response.json()
 
     def update_lc(self, dev_eui, data):
@@ -42,7 +42,7 @@ class DjangoClient:
         api_endpoint = f"lorawanconnections/update/{self.vsn}/{dev_eui}/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.patch(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status() 
         return response.json()
 
     def get_ld(self, dev_eui):
@@ -52,7 +52,7 @@ class DjangoClient:
         api_endpoint = f"lorawandevices/{dev_eui}/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.get(api_url, headers=self.auth_header)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status()  
         return response.json()
 
     def create_ld(self, data):
@@ -62,7 +62,7 @@ class DjangoClient:
         api_endpoint = "lorawandevices/create/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.post(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status()  
         return response.json()
 
     def update_ld(self, dev_eui, data):
@@ -72,7 +72,7 @@ class DjangoClient:
         api_endpoint = f"lorawandevices/update/{dev_eui}/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.patch(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status()  
         return response.json()
 
     def get_lk(self, dev_eui):
@@ -82,7 +82,7 @@ class DjangoClient:
         api_endpoint = f"lorawankeys/{self.vsn}/{dev_eui}/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.get(api_url, headers=self.auth_header)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status() 
         return response.json()
 
     def create_lk(self, data):
@@ -92,7 +92,7 @@ class DjangoClient:
         api_endpoint = "lorawankeys/create/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.post(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status() 
         return response.json()
 
     def update_lk(self, dev_eui, data):
@@ -102,5 +102,5 @@ class DjangoClient:
         api_endpoint = f"lorawankeys/update/{self.vsn}/{dev_eui}/"
         api_url = urljoin(self.server, api_endpoint)
         response = requests.patch(api_url, headers=self.auth_header, json=data)
-        response.raise_for_status()  # Raise an exception for bad responses (4xx or 5xx)
+        response.raise_for_status()  
         return response.json()
