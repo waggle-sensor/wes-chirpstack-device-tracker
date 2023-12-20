@@ -116,17 +116,9 @@ class DjangoClient:
         Create request based on the method and call the api
         """
         api_url = urljoin(self.server, endpoint)
-
-        try:
-            if data is not None:
-                response = method(api_url, headers=self.auth_header, json=data)
-            else:
-                response = method(api_url, headers=self.auth_header)
-        except ValueError as e:
-            logging.error(f"Unsupported method: {e}")
-            raise ValueError(f"Unsupported method: {e}")
-        except Exception as e:
-            logging.error(f"Error occured: {e}")
-            raise Exception(f"Error occured: {e}")
+        if data is not None:
+            response = method(api_url, headers=self.auth_header, json=data)
+        else:
+            response = method(api_url, headers=self.auth_header)
         response.raise_for_status() # Raise an exception for bad responses (4xx or 5xx)
         return response.json()
