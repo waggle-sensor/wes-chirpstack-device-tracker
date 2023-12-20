@@ -32,7 +32,7 @@ class DjangoClient:
         Get LoRaWAN connection using dev EUI
         """
         api_endpoint = f"{self.LC_ROUTER}{self.vsn}/{dev_eui}/"
-        return  self.call_api(HttpMethod.GET, api_endpoint, data)
+        return  self.call_api(HttpMethod.GET, api_endpoint)
 
     def create_lc(self, data: dict) -> dict:
         """
@@ -53,7 +53,7 @@ class DjangoClient:
         Get LoRaWAN device using dev EUI
         """
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
-        return  self.call_api(HttpMethod.GET, api_endpoint, data)
+        return  self.call_api(HttpMethod.GET, api_endpoint)
 
     def create_ld(self, data: dict) -> dict:
         """
@@ -111,15 +111,19 @@ class DjangoClient:
         api_endpoint = f"{self.SH_ROUTER}{hw_model}/"
         return self.call_api(HttpMethod.PATCH, api_endpoint, data)
 
-    def call_api(self, method: HttpMethod, endpoint: str, data: dict) -> dict:
+    def call_api(self, method: HttpMethod, endpoint: str, data: dict = None) -> dict:
         """
         Create request based on the method and call the api
         """
         api_url = urljoin(self.server, endpoint)
 
-        if method not in HttpMethod:
-            raise ValueError(f"Unsupported method: {method}")
-
-        response = method.value(api_url, headers=self.auth_header, json=data)
+        try:
+            response = method(api_url, headers=self.auth_header, json=data)
+        except ValueError as e:
+            logging.error(f"Unsupported method: {e}")
+            raise ValueError(f"Unsupported method: {e}")
+        except Exception as e:
+            logging.error(f"Error occured: {e}")
+            raise Exception(f"Error occured: {e}")
         response.raise_for_status() # Raise an exception for bad responses (4xx or 5xx)
         return response.json()
