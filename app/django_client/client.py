@@ -18,7 +18,7 @@ class DjangoClient:
 
     def __init__(self, args: Namespace):
         self.args = args
-        self.server = self.args.django_api_interface
+        self.server = self.args.api_interface
         self.vsn = self.args.vsn
         self.auth_token = self.args.node_token
         self.auth_header = {"Authorization": f"node_auth {self.auth_token}"}

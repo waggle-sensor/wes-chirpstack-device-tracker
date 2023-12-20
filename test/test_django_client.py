@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch, MagicMock
 from app.django_client import DjangoClient
 
 DEV_EUI = 123456789
-DJANGO_API_INTERFACE = "https://auth.sagecontinuum.org"
+API_INTERFACE = "https://auth.sagecontinuum.org"
 LC_ROUTER = "lorawanconnections/"
 LK_ROUTER = "lorawankeys/"
 LD_ROUTER = "lorawandevices/"
@@ -16,7 +16,7 @@ class TestDjangoClient(unittest.TestCase):
     def setUp(self):
         # Set up the DjangoClient with a mock args object
         self.args = Mock(
-            django_api_interface=DJANGO_API_INTERFACE,
+            api_interface=API_INTERFACE,
             lorawanconnection_router=LC_ROUTER,
             lorawankey_router=LK_ROUTER,
             lorawandevice_router=LD_ROUTER,
@@ -49,7 +49,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.get_lc(dev_eui=DEV_EUI)
 
         # Assertions
-        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
         self.assertEqual(result, {'id': 1, 'node': 'W030', 'lorawan_device': '123456789', 
         'connection_name': 'test', 'created_at': '2023-11-03T20:49:56.290798Z', 
         'last_seen_at': '2023-11-03T20:49:42Z', 'margin': '25.00', 
@@ -76,7 +76,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_lc(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawanconnections/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
@@ -100,7 +100,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_lc(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, data)
 
     @patch("app.django_client.HttpMethod.GET")
@@ -116,7 +116,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.get_ld(dev_eui=DEV_EUI)
 
         # Assertions
-        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
         self.assertEqual(result, {"deveui":"123456789","device_name":"test","battery_level":"0.01"})
 
     @patch("app.django_client.HttpMethod.POST")
@@ -137,7 +137,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_ld(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
@@ -158,7 +158,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_ld(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, data)
 
     @patch("app.django_client.HttpMethod.GET")
@@ -181,7 +181,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.get_lk(dev_eui=DEV_EUI)
 
         # Assertions
-        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
         self.assertEqual(result, {"id":9,"lorawan_connection":"W030-test-123456789","app_key":"12345", 
         "network_Key":"12345","app_session_key":"12345","dev_address":"12345"})
 
@@ -205,7 +205,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_lk(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
@@ -228,7 +228,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_lk(dev_eui=DEV_EUI, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, data)
 
     @patch("app.django_client.HttpMethod.GET")
@@ -244,7 +244,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.get_sh(hw_model=HW_MODEL)
 
         # Assertions
-        mock_get.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header)
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header)
         self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
     @patch("app.django_client.HttpMethod.POST")
@@ -261,7 +261,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.create_sh(data=create_data)
 
         # Assertions
-        mock_post.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/", headers=self.django_client.auth_header, json=create_data)
+        mock_post.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.django_client.auth_header, json=create_data)
         self.assertEqual(result, create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
@@ -278,7 +278,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.update_sh(hw_model=HW_MODEL, data=data)
 
         # Assertions
-        mock_patch.assert_called_once_with(f"{DJANGO_API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header, json=data)
+        mock_patch.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
 if __name__ == "__main__":

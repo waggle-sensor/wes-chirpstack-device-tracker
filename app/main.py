@@ -8,11 +8,17 @@ from chirpstack_client import ChirpstackClient
 import argparse
 import logging
 from pathlib import Path
+from django_client import DjangoClient
 
 def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", action="store_true", help="enable debug logs")
+    parser.add_argument(
+        "--vsn",
+        default=os.getenv("WAGGLE_NODE_VSN"),
+        help="The Node's vsn.",
+    )
     parser.add_argument(
         "--mqtt-server-ip",
         default=os.getenv("MQTT_SERVER_HOST"),
@@ -50,6 +56,16 @@ def main():
         type=Path,
         help="path to node manifest file",
     )
+    parser.add_argument(
+        "--api-interface",
+        default=os.getenv("API_INTERFACE"),
+        help="API server interface.",
+    )
+    parser.add_argument(
+        "--node-token",
+        default=os.getenv("NODE_TOKEN"),
+        help="The Node's token to access Django server API interface.",
+    )
 
     #get args
     args = parser.parse_args()
@@ -62,36 +78,36 @@ def main():
     )
 
     #configure chirpstack client
-    chirpstack_client = ChirpstackClient(args)
+    # chirpstack_client = ChirpstackClient(args)
 
-    tenant_resp = chirpstack_client.list_tenants()
+    # tenant_resp = chirpstack_client.list_tenants()
 
-    app_resp = chirpstack_client.list_all_apps(tenant_resp)
+    # app_resp = chirpstack_client.list_all_apps(tenant_resp)
 
-    resp = chirpstack_client.list_all_devices(app_resp)
+    # resp = chirpstack_client.list_all_devices(app_resp)
 
-    for device in resp:
-        # Calculate the total seconds with nanoseconds
-        total_seconds = device.last_seen_at.seconds + device.last_seen_at.nanos / 1e9
-        # Convert seconds since epoch to a datetime object
-        datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds)
-        # Format the datetime object as a string
-        formatted_date = datetime_obj_utc.strftime('%Y-%m-%d %H:%M:%S')
+    # for device in resp:
+    #     # Calculate the total seconds with nanoseconds
+    #     total_seconds = device.last_seen_at.seconds + device.last_seen_at.nanos / 1e9
+    #     # Convert seconds since epoch to a datetime object
+    #     datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds)
+    #     # Format the datetime object as a string
+    #     formatted_date = datetime_obj_utc.strftime('%Y-%m-%d %H:%M:%S')
 
-        print("Device ID:", device.dev_eui)
-        print("Device Name:", device.name)
-        print("Last seen at:", formatted_date) 
-        print("Device App Keys:",chirpstack_client.get_device_app_key(device.dev_eui))
-        print("Device Activation:",chirpstack_client.get_device_activation(device.dev_eui))
-        print(device.device_status)
-        print("\n")
+    #     print("Device ID:", device.dev_eui)
+    #     print("Device Name:", device.name)
+    #     print("Last seen at:", formatted_date) 
+    #     print("Device App Keys:",chirpstack_client.get_device_app_key(device.dev_eui))
+    #     print("Device Activation:",chirpstack_client.get_device_activation(device.dev_eui))
+    #     print(device.device_status)
+    #     print("\n")
 
-        print(chirpstack_client.get_device_profile(device.device_profile_id))
+    #     print(chirpstack_client.get_device_profile(device.device_profile_id))
         
     
-    #configure mqtt client
-    mqtt_client = MqttClient(args)
-    mqtt_client.run()
+    # #configure mqtt client
+    # mqtt_client = MqttClient(args)
+    # mqtt_client.run()
 
 if __name__ == "__main__":
 
