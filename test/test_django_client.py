@@ -5,7 +5,6 @@ from app.django_client import DjangoClient
 DEV_EUI = 123456789
 DJANGO_API_INTERFACE = "https://auth.sagecontinuum.org"
 HW_MODEL = "sfmx100"
-
 VSN = "W030"
 NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
 
