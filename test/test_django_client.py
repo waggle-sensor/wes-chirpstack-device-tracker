@@ -4,6 +4,10 @@ from app.django_client import DjangoClient
 
 DEV_EUI = 123456789
 DJANGO_API_INTERFACE = "https://auth.sagecontinuum.org"
+LC_ROUTER = "lorawanconnections/"
+LK_ROUTER = "lorawankeys/"
+LD_ROUTER = "lorawandevices/"
+SH_ROUTER = "sensorhardwares/"
 HW_MODEL = "sfmx100"
 VSN = "W030"
 NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
@@ -11,7 +15,15 @@ NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
 class TestDjangoClient(unittest.TestCase):
     def setUp(self):
         # Set up the DjangoClient with a mock args object
-        self.args = Mock(django_api_interface=DJANGO_API_INTERFACE, vsn=VSN, node_token=NODE_TOKEN)
+        self.args = Mock(
+            django_api_interface=DJANGO_API_INTERFACE,
+            lorawanconnection_router=LC_ROUTER,
+            lorawankey_router=LK_ROUTER,
+            lorawandevice_router=LD_ROUTER,
+            sensorhardware_router=SH_ROUTER,
+            vsn=VSN,
+            node_token=NODE_TOKEN
+        )
         self.django_client = DjangoClient(self.args)
 
     @patch("app.django_client.HttpMethod.GET")

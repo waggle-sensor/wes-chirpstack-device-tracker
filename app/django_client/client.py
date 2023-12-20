@@ -15,10 +15,6 @@ class DjangoClient:
     """
     Django client to call Api(s)
     """
-    LC_ROUTER = "lorawanconnections/"
-    LK_ROUTER = "lorawankeys/"
-    LD_ROUTER = "lorawandevices/"
-    SH_ROUTER = "sensorhardwares/"
 
     def __init__(self, args: Namespace):
         self.args = args
@@ -26,6 +22,10 @@ class DjangoClient:
         self.vsn = self.args.vsn
         self.auth_token = self.args.node_token
         self.auth_header = {"Authorization": f"node_auth {self.auth_token}"}
+        self.LC_ROUTER = self.args.lorawanconnection_router
+        self.LK_ROUTER = self.args.lorawankey_router
+        self.LD_ROUTER = self.args.lorawandevice_router
+        self.SH_ROUTER = self.args.sensorhardware_router
 
     def get_lc(self, dev_eui: str) -> dict:
         """
