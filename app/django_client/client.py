@@ -4,6 +4,7 @@ import sys
 import os
 from urllib.parse import urljoin
 from argparse import Namespace
+from enum import Enum
 
 class HttpMethod(Enum):
     GET = requests.get
