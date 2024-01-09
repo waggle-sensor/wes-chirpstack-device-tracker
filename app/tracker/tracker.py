@@ -37,21 +37,47 @@ class Tracker(MqttClient):
         if manifest.lc_check():
             if manifest.ld_search(deviceInfo["devEui"]):
                 #update lorawan connection and device in both db and manifest file
+
+                #TODO: move a lot of this logic into their own methods
+
+                #get device, device profile and more?
+                device_resp = self.c_client.get_device(deviceInfo["devEui"])
+                deviceprofile_resp = self.c_client.get_device_profile(deviceInfo["deviceProfileId"])
                 
                 #1) update ld
-                resp = self.c_client.get_device(deviceInfo["devEui"])
-                battery_level = resp.device_status.battery_level
-                name = replace_spaces(resp.device.name)
-                data = {
-                "device_name": name,
-                "battery_level": battery_level
+                battery_level = device_resp.device_status.battery_level
+                name = replace_spaces(device_resp.device.name)
+                ld_data = {
+                    "device_name": name,
+                    "battery_level": battery_level
                 }
                 self.d_client.update_ld(deviceInfo["devEui"], data)
 
                 #2) update lc
+                con_name = replace_spaces(device_resp.device.name)
+
+                # Calculate the total seconds with nanoseconds #TODO: check if this converts the date correctly
+                total_seconds = device_resp.last_seen_at.seconds + device_resp.last_seen_at.nanos / 1e9
+                # Convert seconds since epoch to a datetime object
+                datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds)
                 
+                last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+                margin = device_resp.device_status.margin
+                expected_upint = deviceprofile_resp.device_profile.uplink_interval
+                con_type = "OTAA" if deviceprofile_resp.device_profile.supports_otaa else "ABP"
+                lc_data = {
+                    "connection_name": con_name,
+                    'last_seen_at': last_seen_at, 
+                    "margin": margin,
+                    "expected_uplink_interval_sec": expected_upint,
+                    "connection_type": con_type
+                }
+                self.d_client.update_lc(deviceInfo["devEui"], lc_data)
 
                 #3) update lk
+                #TODO: left off here on 01/09/2024 - Francisco Lozano
+
+                
                 #4) update manifest
 
 
