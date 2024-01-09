@@ -2,6 +2,8 @@ from argparse import Namespace
 from chirpstack_client import ChirpstackClient
 from django_client import DjangoClient
 from mqtt_client import MqttClient
+from manifest import Manifest
+from .parse import *
 
 class Tracker(MqttClient):
     def __init__(self, args: Namespace):
@@ -36,6 +38,23 @@ class Tracker(MqttClient):
             if manifest.ld_search(deviceInfo["devEui"]):
                 #update lorawan connection and device in both db and manifest file
                 
+                #1) update ld
+                resp = self.c_client.get_device(deviceInfo["devEui"])
+                battery_level = resp.device_status.battery_level
+                name = replace_spaces(resp.device.name)
+                data = {
+                "device_name": name,
+                "battery_level": battery_level
+                }
+                self.d_client.update_ld(deviceInfo["devEui"], data)
+
+                #2) update lc
+                
+
+                #3) update lk
+                #4) update manifest
+
+
                 break
                 return #<- remove, once done! 
             else:
@@ -54,4 +73,12 @@ class Tracker(MqttClient):
             return #<- remove, once done! 
 
 
+        return
+    
+
+
+    def update_lorawan_records(self):
+        return
+
+    def create_lorawan_records(self):
         return
