@@ -1,18 +1,27 @@
+import logging
+import json
+
 class Manifest:
     """
     Manifest class to CRUD the file
     """
-    def __init__(self, path: str):
-        self.dict = self.get_manifest(path)
+    def __init__(self, filepath: str):
+        self.filepath = filepath
+        self.dict = self.load_manifest()
 
-    def get_manifest(self, path: str) -> dict:
+    def load_manifest(self):
         """
-        Return manifest based on file path input
+        Return manifest based on filepath
         """
-        with open(self.args.manifest) as f:
-            manifest = json.load(f)
-        
-        return manifest
+        with open(self.filepath, 'r') as f:
+            return json.load(f)
+
+    def save_manifest(self):
+        """
+        Save manifest file
+        """
+        with open(self.filepath, 'w') as f:
+            json.dump(self.dict, f, indent=3)
 
     def lc_check(self) -> bool:
         """
@@ -35,38 +44,57 @@ class Manifest:
             return False
         return False
 
-    def update_lc(self):
+    def update_manifest(self, data: dict):
         """
-        update lorawan connection in manifest
+        Update manifest with new lorawan connection data
         """
-        return
 
-    def create_lc(self):
-        """
-        create lorawan connection in manifest
-        """
-        return
+        if not self.lc_check():
+            # If "lorawanconnections" is not present, create it as an empty list
+            self.dict["lorawanconnections"] = []
 
-    def update_ld(self):
-        """
-        update lorawan device in manifest
-        """
-        return
+        existing_lcs = self.dict["lorawanconnections"]
 
-    def create_ld(self):
-        """
-        create lorawan device in manifest
-        """
-        return
+        for new_lc in data.get("lorawanconnections", []):
+            # Find the index of the connection based on a uid
+            index_to_update = next((i for i, existing_lc in enumerate(existing_lcs) 
+                                    if existing_lc.get("lorawandevice", {}).get("deveui") == new_lc.get("lorawandevice", {}).get("deveui")), None)
 
-    def update_sh(self):
-        """
-        update sensor hardware in manifest
-        """
-        return
+            if index_to_update is not None:
+                # Update the existing connection
+                existing_lcs[index_to_update].update(new_lc)
+            else:
+                # If not found, add the new connection
+                existing_lcs.append(new_lc)
 
-    def create_sh(self):
-        """
-        create sensor hardware in manifest
-        """
-        return
+        # Save the updated manifest
+        self.save_manifest()
+
+    
+    #TODO: do I need seperate functions to update lorawan devices, hardware, and connections in manifest?
+    #   The update_manifest function takes care of updating everyting. If I use update_manifest,
+    #   I will need to make sure the input 'data' follows the correct json convention 
+
+    # def update_ld(self):
+    #     """
+    #     update lorawan device in manifest
+    #     """
+    #     return
+
+    # def create_ld(self):
+    #     """
+    #     create lorawan device in manifest
+    #     """
+    #     return
+
+    # def update_sh(self):
+    #     """
+    #     update sensor hardware in manifest
+    #     """
+    #     return
+
+    # def create_sh(self):
+    #     """
+    #     create sensor hardware in manifest
+    #     """
+    #     return
