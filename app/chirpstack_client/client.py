@@ -82,6 +82,21 @@ class ChirpstackClient:
 
         return devices
 
+    def get_device(self, dev_eui: str) -> dict:
+        """
+        Get device using deveui
+        """
+        client = api.DeviceServiceStub(self.channel)
+
+        # Define the JWT key metadata.
+        metadata = [("authorization", "Bearer %s" % self.auth_token)]
+
+        #Construct request
+        req = api.GetDeviceRequest()
+        req.dev_eui = dev_eui
+
+        return client.Get(req, metadata=metadata)
+
     def list_all_apps(self,tenant_resp):
         """
         List all apps by inputting the response of self.list_tenants()
@@ -125,7 +140,7 @@ class ChirpstackClient:
 
     def get_device_profile(self,device_profile_id):
         """
-        Get device profiles using profile id from self.list_all_devices() 
+        Get device profiles using profile id
         """
         client = api.DeviceProfileServiceStub(self.channel)
 
