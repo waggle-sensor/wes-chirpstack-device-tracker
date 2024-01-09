@@ -69,50 +69,7 @@ class MqttClient:
         Method to run when message is received
         """
         #log message if debug flag was passed
-        self.log_message(message) if args.debug else None
-
-        #parse message for metadata and deviceInfo. 
-        result = self.parse_message(message)
-        if result is not None:
-            try:
-                metadata, deviceInfo = result
-            except ValueError as e:
-                logging.error(f"Message did not parse correctly, {e}")
-        else:
-            return
-
-        #TODO: now that you have the device info you can read the manifest
-        # and check if the device exist in lorawandevices
-
-        #load the node manifest
-        with open(args.manifest) as f:
-            manifest = json.load(f)
-
-        #get the manifest lorawan connection dict for this node
-        #consider using a bloom filter: if lorawan connections gets to be a huge number the computation will be too high
-        #   to do on every message
-        if manifest["lorawanconnections"]:
-            for lorawanconnection in manifest["lorawanconnections"]:
-                lorawandevice = lorawanconnection["lorawandevice"]
-                if lorawandevice["deveui"] == deviceInfo["devEui"]:
-                    #update lorawan connection and device in both db and manifest file
-                    break
-                    return #<- remove, once done! 
-                else:
-                    #try to retrieve device from db
-                        #if not found create device in both db and manifest file
-                        #else update device in both db and manifest file
-                    #create lorawan connection with device in both db and manifest file
-                    #create lorawan connection and device in both db and manifest file <-- make sure this is right
-                    #!!!! TODO: this is not right has to be outside the loop!
-                    return #<- remove, once done! 
-        else:
-            #try to retrieve device from db
-                #if not found create device in db
-                #else update device in db
-            #create lorawan connection with device in both db and manifest file
-            return #<- remove, once done! 
-
+        self.log_message(message) if self.args.debug else None
 
         return
 
