@@ -29,7 +29,7 @@ class Manifest:
         """
         return "lorawanconnections" in self.dict
 
-    def ld_search(self, uid: str) -> bool:
+    def ld_search(self, deveui: str) -> bool:
         """
         Search the manifest for a lorawan device return true if found
         """
@@ -38,7 +38,7 @@ class Manifest:
         if self.lc_check():
             for lc in self.dict["lorawanconnections"]:
                 ld = lc["lorawandevice"]
-                if ld["deveui"] == uid:
+                if ld["deveui"] == deveui:
                     return True 
         else:
             return False
