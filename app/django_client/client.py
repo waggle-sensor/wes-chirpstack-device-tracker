@@ -74,7 +74,19 @@ class DjangoClient:
         Check if lorawan device exists
         """
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
-        headers = self.call_api(HttpMethod.GET, api_endpoint).headers
+        response = self.call_api(HttpMethod.GET, api_endpoint)
+
+        if response:
+            headers = response['headers'].get('status-code')
+            if status_code == 200:
+                return True
+            elif status_code == 404:
+                return False
+            else:
+                logging.error(f"Unexpected status code in ld_check() for {api_endpoint}: {status_code}")
+                return False
+        else:
+            return False
 
     def get_lk(self, dev_eui: str) -> dict:
         """
@@ -135,5 +147,5 @@ class DjangoClient:
                 'json': response.json()
             }
         except requests.exceptions.HTTPError as e:
-            logging.error(f"HTTP error occurred in call_api() for {api_url}: {e}")
+            logging.error(f"HTTP error occurred in call_api() for {endpoint}: {e}")
             return None
