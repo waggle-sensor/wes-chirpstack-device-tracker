@@ -69,6 +69,13 @@ class DjangoClient:
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
         return  self.call_api(HttpMethod.PATCH, api_endpoint, data)
 
+    def ld_check(self, dev_eui: str) -> bool:
+        """
+        Check if lorawan device exists
+        """
+        api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
+        headers = self.call_api(HttpMethod.GET, api_endpoint).headers
+
     def get_lk(self, dev_eui: str) -> dict:
         """
         Get LoRaWAN key using dev EUI
@@ -116,9 +123,17 @@ class DjangoClient:
         Create request based on the method and call the api
         """
         api_url = urljoin(self.server, endpoint)
-        if data is not None:
-            response = method(api_url, headers=self.auth_header, json=data)
-        else:
-            response = method(api_url, headers=self.auth_header)
-        response.raise_for_status() # Raise an exception for bad responses (4xx or 5xx)
-        return response.json()
+        try:
+            if data is not None:
+                response = method(api_url, headers=self.auth_header, json=data)
+            else:
+                response = method(api_url, headers=self.auth_header)
+            response.raise_for_status() # Raise an exception for bad responses (4xx or 5xx)
+
+            return {
+                'headers': dict(response.headers),
+                'json': response.json()
+            }
+        except requests.exceptions.HTTPError as e:
+            logging.error(f"HTTP error occurred in call_api() for {api_url}: {e}")
+            return None
