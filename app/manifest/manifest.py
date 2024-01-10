@@ -82,13 +82,12 @@ class Manifest:
             logging.error(f"is_valid_json: {e}")
             return False
 
-    @staticmethod
-    def check_keys(data: dict, structure: dict) -> bool:
+    def check_keys(self, data: dict, structure: dict) -> bool:
         """
         A recursive function that iterates through the keys defined in the structure.
         If a key is a dict, it recursively checks the nested keys. 
         """
-        return all(key in data and (type(data[key]) == dict and check_keys(data[key], structure[key]) if isinstance(structure[key], dict) else True) for key in structure)
+        return all(key in data and (type(data[key]) == dict and self.check_keys(data[key], structure[key]) if isinstance(structure[key], dict) else True) for key in structure)
 
     def is_valid_struc(self, data: dict) -> bool:
         """
@@ -99,10 +98,9 @@ class Manifest:
         else:
             return False
 
-        return check_keys(json_data, self.structure)
+        return self.check_keys(json_data, self.structure)
             
-    @staticmethod
-    def has_requiredKeys(data: dict) -> bool:
+    def has_requiredKeys(self, data: dict) -> bool:
         """
         Check if data has required keys
         """
