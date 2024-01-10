@@ -20,7 +20,7 @@ class ChirpstackClient:
         self.password = self.args.chirpstack_account_password
         self.auth_token = self.login()
 
-    def login(self):
+    def login(self) -> str:
         """
         Login to the server to get jwt auth token
         """
@@ -60,7 +60,7 @@ class ChirpstackClient:
 
         return resp.jwt
 
-    def list_all_devices(self,app_resp):
+    def list_all_devices(self,app_resp: dict) -> dict:
         """
         List all devices by inputting the response of self.list_all_apps()
         """
@@ -97,7 +97,7 @@ class ChirpstackClient:
 
         return client.Get(req, metadata=metadata)
 
-    def list_all_apps(self,tenant_resp):
+    def list_all_apps(self,tenant_resp: dict) -> dict:
         """
         List all apps by inputting the response of self.list_tenants()
         """
@@ -120,7 +120,7 @@ class ChirpstackClient:
 
         return apps
 
-    def list_tenants(self):
+    def list_tenants(self) -> dict:
         """
         List all tenants
         """
@@ -138,7 +138,7 @@ class ChirpstackClient:
 
         return self.List_agg_pagination(client,req,metadata)
 
-    def get_device_profile(self,device_profile_id):
+    def get_device_profile(self,device_profile_id: str) -> dict:
         """
         Get device profiles using profile id
         """
@@ -191,7 +191,7 @@ class ChirpstackClient:
         # < 5 is lorawan 1.0.x
         return resp.device_keys.nwk_key if lw_v < 5 else resp.device_keys.app_key
 
-    def get_device_activation(self,deveui):
+    def get_device_activation(self,deveui: str) -> dict:
         """
         Get Activation returns the current activation details of the device (OTAA or ABP) using deveui
         """
@@ -207,7 +207,7 @@ class ChirpstackClient:
         return client.GetActivation(req, metadata=metadata)
 
     @staticmethod
-    def List_agg_pagination(client,req,metadata):
+    def List_agg_pagination(client,req,metadata) -> dict:
         """
         This method aggregates all the result-sets in pagination from rpc List into one list
         """
