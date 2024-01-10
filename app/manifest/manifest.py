@@ -8,6 +8,32 @@ class Manifest:
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.dict = self.load_manifest()
+        self.structure =  {
+            "connection_name": None,
+            "created_at": None,
+            "last_seen_at": None,
+            "margin": None,
+            "expected_uplink_interval_sec": None,
+            "connection_type": None,
+            "lorawandevice": {
+                "deveui": None,
+                "name": None,
+                "battery_level": None,
+                "labels": None,
+                "serial_no": None,
+                "uri": None,
+                "hardware": {
+                    "hardware": None,
+                    "hw_model": None,
+                    "hw_version": None,
+                    "sw_version": None,
+                    "manufacturer": None,
+                    "datasheet": None,
+                    "capabilities": None,
+                    "description": None,
+                },
+            }
+        }
 
     def load_manifest(self):
         """
@@ -57,9 +83,28 @@ class Manifest:
             return False
 
     @staticmethod
-    def is_valid_lc(data: dict) -> bool:
+    def check_keys(data: dict, structure: dict) -> bool:
         """
-        Check if data conforms to manifest structure
+        A recursive function that iterates through the keys defined in the structure.
+        If a key is a dict, it recursively checks the nested keys. 
+        """
+        return all(key in data and (type(data[key]) == dict and check_keys(data[key], structure[key]) if isinstance(structure[key], dict) else True) for key in structure)
+
+    def is_valid_struc(self, data: dict) -> bool:
+        """
+        Checks if the data conforms to manifest structure
+        """
+        if self.is_valid_json(data):
+            json_data = data
+        else:
+            return False
+
+        return check_keys(json_data, self.structure)
+            
+    @staticmethod
+    def has_requiredKeys(data: dict) -> bool:
+        """
+        Check if data has required keys
         """
         if self.is_valid_json(data):
             json_data = data
@@ -104,7 +149,7 @@ class Manifest:
         """
         Update manifest with new lorawan connection data
         """
-        if not self.is_valid_lc(data):
+        if not self.is_valid_struc(data):
             logging.error("update_manifest: lorawan connection data does not conform to manifest structure")
             return
         
@@ -123,38 +168,13 @@ class Manifest:
             # Update the existing connection
             existing_lcs[index_to_update].update(new_lc)
         else:
-            # If not found, add the new connection
+            # If not found, check for required keys and add the new connection
+            if not self.has_requiredKeys(data):
+                logging.error("update_manifest: lorawan connection data does not have required keys")
+                return
             existing_lcs.append(new_lc)
 
         # Save the updated manifest
         self.save_manifest()
 
         return
-
-    #TODO: do I need seperate functions to update lorawan devices, hardware, and connections in manifest?
-    #   The update_manifest function takes care of updating everyting. If I use update_manifest,
-    #   I will need to make sure the input 'data' follows the correct json convention 
-
-    # def update_ld(self):
-    #     """
-    #     update lorawan device in manifest
-    #     """
-    #     return
-
-    # def create_ld(self):
-    #     """
-    #     create lorawan device in manifest
-    #     """
-    #     return
-
-    # def update_sh(self):
-    #     """
-    #     update sensor hardware in manifest
-    #     """
-    #     return
-
-    # def create_sh(self):
-    #     """
-    #     create sensor hardware in manifest
-    #     """
-    #     return
