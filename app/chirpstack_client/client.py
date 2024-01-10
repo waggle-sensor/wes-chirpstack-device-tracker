@@ -153,9 +153,10 @@ class ChirpstackClient:
 
         return client.Get(req, metadata=metadata)
     
-    def get_device_app_key(self,deveui):
+    def get_device_app_key(self,deveui: str,lw_v: int) -> str:
         """
         Get device Application key using dev eui (Only OTAA)
+        lw_v: The lorawan version the device is using (input directly from get_device_profile() output)
         """
         client = api.DeviceServiceStub(self.channel)
 
@@ -186,7 +187,9 @@ class ChirpstackClient:
             logging.error(f"An error occurred: {e}")
             return
         
-        return resp.device_keys.nwk_key
+        # what key to return is based on lorawan version (For LoRaWAN 1.1 devices return app_key)
+        # < 5 is lorawan 1.0.x
+        return resp.device_keys.nwk_key if lw_v < 5 else resp.device_keys.app_key
 
     def get_device_activation(self,deveui):
         """
