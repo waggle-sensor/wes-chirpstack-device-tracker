@@ -35,6 +35,7 @@ class Tracker(MqttClient):
 
         #load the node manifest
         manifest = Manifest(self.args.manifest)
+        dev_exist = manifest.ld_search(deviceInfo["devEui"])
 
         #retrieve data from chirpstack
         device_resp = self.c_client.get_device(deviceInfo["devEui"])
@@ -42,22 +43,22 @@ class Tracker(MqttClient):
         act_resp = self.c_client.get_device_activation(deviceInfo["devEui"])
 
         # if ld exist in manifest then...
-        if manifest.ld_search(deviceInfo["devEui"]):
+        if dev_exist:
             #update ld, lc, lk, and manifest                
             self.update_ld(deviceInfo["devEui"], device_resp)
             self.update_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
             self.update_lk(deviceInfo["devEui"], act_resp, deviceprofile_resp)
-            self.update_manifest(deviceInfo["devEui"], manifest, device_resp, deviceprofile_resp)
+            self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
 
         #else ld does not exist in manifest then...
         else:
             #if ld exist in django then...
-            if self.d_client.ld_check(deviceInfo["devEui"]): 
+            if self.d_client.ld_search(deviceInfo["devEui"]): 
                 # relate the device to this node by creating a new lc and lk and updating ld and manifest
                 self.update_ld(deviceInfo["devEui"], device_resp)
                 lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
                 self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
-                self.update_manifest(deviceInfo["devEui"], manifest, device_resp, deviceprofile_resp)
+                self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
 
             #else ld does not exist in django then...
             else:
@@ -65,14 +66,11 @@ class Tracker(MqttClient):
                 #TODO: creating a sh everytime ld does not exist in django will sometimes create sh duplicates?
                 #       do I have to include another if to check if sh exist in django (similiar to ld if)?
                 #       how will I check if it exists? whats a GUID that is shared for all devices 
-                #1) create sensor hardware
                 sh_id = self.create_sh(deviceprofile_resp)
-                #2) create ld
-                #3) create lc
+                self.create_ld(deviceInfo["devEui"], sh_id, device_resp)
                 lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
-                #4) create lk
                 self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
-                #5) update manifest
+                self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
 
         return
     
@@ -88,6 +86,23 @@ class Tracker(MqttClient):
             "battery_level": battery_level
         }
         self.d_client.update_ld(deveui, data)
+
+        return
+
+    def create_ld(self, deveui: str, sh_id: int, device_resp: dict):
+        """
+        Create lorawan device using mqtt message, chirpstack client, and django client
+        sh_id: sensor hardware record id in django
+        device_resp: the output of chirpstack client's get_device
+        """
+        battery_level = device_resp.device_status.battery_level
+        dev_name = replace_spaces(device_resp.device.name)
+        ld_data = {
+            "name": dev_name,
+            "battery_level": battery_level,
+            "hardware": sh_id,
+            "deveui": deveui
+        }
 
         return
 
@@ -214,9 +229,10 @@ class Tracker(MqttClient):
             logging.error("Tracker.create_sh(): d_client.create_sh() did not return a response")
             return None
 
-    def update_manifest(self, deveui: str, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):
+    def update_manifest(self, deveui: str, dev_exist:bool, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):
         """
         Update manifest using mqtt message, chirpstack client, django client, and manifest
+        dev_exist: boolean that tells if device exist in manifest
         manifest: Manifest object
         device_resp: the output of chirpstack client's get_device()
         deviceprofile_resp: the output of chirpstack client's get_device_profile()
@@ -240,9 +256,19 @@ class Tracker(MqttClient):
                 "battery_level": battery_level,
             }
         }
-        #TODO: include hardware in manifest_data when the device is new (not in django)
-        manifest.update_manifest(manifest_data)
+        if not dev_exist: #include hardware in manifest_data when the device is not in manifest
+            hardware = deviceprofile_resp.device_profile.name
+            hw_model = clean_hw_model(deviceprofile_resp.device_profile.name)
+            description = deviceprofile_resp.device_profile.description
+            capabilities = ["lorawan"] 
+            manifest_data["lorawandevice"]["hardware"] = {
+                "hardware": hardware,
+                "hw_model": hw_model,
+                "description": description,
+                "capabilities": capabilities
+        }
 
+        manifest.update_manifest(manifest_data)
         return
 
     @staticmethod
