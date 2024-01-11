@@ -130,6 +130,25 @@ class DjangoClient:
         api_endpoint = f"{self.SH_ROUTER}{hw_model}/"
         return self.call_api(HttpMethod.PATCH, api_endpoint, data)
 
+    def sh_search(self, hw_model: str) -> bool:
+        """
+        Search the db for a sensor hardware return true if found
+        """
+        api_endpoint = f"{self.SH_ROUTER}{hw_model}/"
+        response = self.call_api(HttpMethod.GET, api_endpoint)
+
+        if response:
+            headers = response['headers'].get('status-code')
+            if status_code == 200:
+                return True
+            elif status_code == 404:
+                return False
+            else:
+                logging.error(f"Unexpected status code in DjangoClient.sh_search() for {api_endpoint}: {status_code}")
+                return False
+        else:
+            return False
+
     def call_api(self, method: HttpMethod, endpoint: str, data: dict = None) -> dict:
         """
         Create request based on the method and call the api
