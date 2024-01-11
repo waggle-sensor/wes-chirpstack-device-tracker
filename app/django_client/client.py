@@ -163,7 +163,7 @@ class DjangoClient:
 
             return {
                 'headers': dict(response.headers),
-                'json': response.json()
+                'json_body': response.json()
             }
         except requests.exceptions.HTTPError as e:
             logging.error(f"HTTP error occurred in DjangoClient.call_api() for {endpoint}: {e}")
