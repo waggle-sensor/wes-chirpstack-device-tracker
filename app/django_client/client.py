@@ -69,9 +69,9 @@ class DjangoClient:
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
         return  self.call_api(HttpMethod.PATCH, api_endpoint, data)
 
-    def ld_check(self, dev_eui: str) -> bool:
+    def ld_search(self, dev_eui: str) -> bool:
         """
-        Check if lorawan device exists
+        Search the db for a lorawan device return true if found
         """
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
         response = self.call_api(HttpMethod.GET, api_endpoint)
@@ -83,7 +83,7 @@ class DjangoClient:
             elif status_code == 404:
                 return False
             else:
-                logging.error(f"Unexpected status code in DjangoClient.ld_check() for {api_endpoint}: {status_code}")
+                logging.error(f"Unexpected status code in DjangoClient.ld_search() for {api_endpoint}: {status_code}")
                 return False
         else:
             return False
