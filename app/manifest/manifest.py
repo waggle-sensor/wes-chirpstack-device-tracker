@@ -1,5 +1,7 @@
 import logging
 import json
+import fcntl
+import time
 
 class Manifest:
     """
@@ -35,11 +37,28 @@ class Manifest:
             }
         }
 
+    #TODO: add a file lock mechanism so that it doesn't interfere with update-stack.sh
+    #   - I also have to add it in update-stack.sh
+    #   - https://chat.openai.com/share/4bfca9a9-705d-4403-9e01-bba45236bc02
+    # def wait_for_lock(self):
+    #     while True:
+    #         try:
+    #             # Attempt to acquire an exclusive lock
+    #             fcntl.flock(self.filepath, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    #             return
+    #         except BlockingIOError:
+    #             # File is locked, wait and retry
+    #             time.sleep(1)
+
     def load_manifest(self):
         """
         Return manifest based on filepath
         """
         with open(self.filepath, 'r') as f:
+            # Wait for the lock
+            # self.wait_for_lock()
+            # Release the lock
+            # fcntl.flock(self.filepath, fcntl.LOCK_UN)
             return json.load(f)
 
     def save_manifest(self):
@@ -47,7 +66,11 @@ class Manifest:
         Save manifest file
         """
         with open(self.filepath, 'w') as f:
+            # Wait for the lock
+            # self.wait_for_lock()
             json.dump(self.dict, f, indent=3)
+            # Release the lock
+            # fcntl.flock(self.filepath, fcntl.LOCK_UN)
 
     def lc_check(self) -> bool:
         """
