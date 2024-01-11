@@ -1,4 +1,5 @@
 import datetime
+import logging
 from argparse import Namespace
 from chirpstack_client import ChirpstackClient
 from django_client import DjangoClient
@@ -28,7 +29,7 @@ class Tracker(MqttClient):
             try:
                 metadata, deviceInfo = result
             except ValueError as e:
-                logging.error(f"Message did not parse correctly, {e}")
+                logging.error(f"Tracker.on_message(): Message did not parse correctly, {e}")
         else:
             return
 
@@ -61,7 +62,11 @@ class Tracker(MqttClient):
             #else ld does not exist in django then...
             else:
                 # create a new sensor hardware, ld, lc, lk, and update manifest
-                #1) create hardware
+                #TODO: creating a sh everytime ld does not exist in django will sometimes create sh duplicates?
+                #       do I have to include another if to check if sh exist in django (similiar to ld if)?
+                #       how will I check if it exists? whats a GUID that is shared for all devices 
+                #1) create sensor hardware
+                sh_id = self.create_sh(deviceprofile_resp)
                 #2) create ld
                 #3) create lc
                 lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
@@ -135,6 +140,7 @@ class Tracker(MqttClient):
             lc_str = self.args.vsn + "-" + dev_name + "-" + deveui
             return lc_str
         else:
+            logging.error("Tracker.create_lc(): d_client.create_lc() did not return a response")
             return None
         
     def update_lk(self, deveui: str, act_resp: dict, deviceprofile_resp: dict):
@@ -185,7 +191,28 @@ class Tracker(MqttClient):
 
         return
 
-
+    #TODO: consider using Tanuki to fill out fields like description, manufacturer, etc. in sensor hardware
+    def create_sh(self, deviceprofile_resp: dict) -> int:
+        """
+        Create sensor hardware using django client. Returns the sensor hardware record id
+        deviceprofile_resp: the output of chirpstack client's get_device_profile()
+        """
+        hardware = deviceprofile_resp.device_profile.name
+        hw_model = clean_hw_model(deviceprofile_resp.device_profile.name)
+        description = deviceprofile_resp.device_profile.description
+        capabilities = [35] #lorawan = 35
+        sh_data = {
+            "hardware": hardware,
+            "hw_model": hw_model,
+            "description": description,
+            "capabilities": capabilities
+        }
+        response = self.d_client.create_sh(sh_data)
+        if response:
+            return response.json.id
+        else:
+            logging.error("Tracker.create_sh(): d_client.create_sh() did not return a response")
+            return None
 
     def update_manifest(self, deveui: str, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):
         """
