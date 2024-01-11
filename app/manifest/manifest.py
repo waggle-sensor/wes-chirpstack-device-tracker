@@ -79,7 +79,7 @@ class Manifest:
             json.loads(data)
             return True
         except json.JSONDecodeError as e:
-            logging.error(f"is_valid_json: {e}")
+            logging.error(f"Manifest.is_valid_json(): {e}")
             return False
 
     def check_keys(self, data: dict, structure: dict) -> bool:
@@ -140,7 +140,7 @@ class Manifest:
 
         except (TypeError, KeyError) as e:
             # Handle exceptions if the structure is not as expected
-            logging.error(f"is_valid_lc: {e}")
+            logging.error(f"Manifest.has_requiredKeys(): {e}")
             return False
 
     def update_manifest(self, data: dict):
@@ -148,7 +148,7 @@ class Manifest:
         Update manifest with new lorawan connection data
         """
         if not self.is_valid_struc(data):
-            logging.error("update_manifest: lorawan connection data does not conform to manifest structure")
+            logging.error("Manifest.update_manifest(): lorawan connection data does not conform to manifest structure")
             return
         
         if not self.lc_check():
@@ -168,7 +168,7 @@ class Manifest:
         else:
             # If not found, check for required keys and add the new connection
             if not self.has_requiredKeys(data):
-                logging.error("update_manifest: lorawan connection data does not have required keys")
+                logging.error("Manifest.update_manifest(): lorawan connection data does not have required keys")
                 return
             existing_lcs.append(new_lc)
 

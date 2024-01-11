@@ -32,7 +32,7 @@ class ChirpstackClient:
         req.password = self.password
 
         # Send the Login request.
-        logging.info(f"connecting {self.server}...")
+        logging.info(f"ChirpstackClient.login(): connecting {self.server}...")
         try:
             resp = client.Login(req)
         except grpc.RpcError as e:
@@ -41,22 +41,22 @@ class ChirpstackClient:
             details = e.details()
             
             if status_code == grpc.StatusCode.UNAVAILABLE:
-                logging.error("Service is unavailable. This might be a DNS resolution issue.")
-                logging.error(f"Details: {details}")
+                logging.error("ChirpstackClient.login(): Service is unavailable. This might be a DNS resolution issue.")
+                logging.error(f"    Details: {details}")
             else:
-                logging.error(f"An error occurred with status code {status_code}")
-                logging.error(f"Details: {details}")
+                logging.error(f"ChirpstackClient.login(): An error occurred with status code {status_code}")
+                logging.error(f"    Details: {details}")
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
         except Exception as e:
             # Handle other exceptions if needed
-            logging.error(f"An error occurred: {e}")
+            logging.error(f"ChirpstackClient.login(): An error occurred: {e}")
 
             # Exit with a non-zero status code to indicate failure
             sys.exit(1)
                 
-        logging.info("Connected to Chirpstack Server")
+        logging.info("ChirpstackClient.login(): Connected to Chirpstack Server")
 
         return resp.jwt
 
@@ -175,16 +175,16 @@ class ChirpstackClient:
             details = e.details()
 
             if status_code == grpc.StatusCode.NOT_FOUND:
-                logging.error("The device key does not exist. It is possible that the device is using ABP which does not use an application key")
-                logging.error(f"Details: {details}")
+                logging.error("ChirpstackClient.get_device_app_key(): The device key does not exist. It is possible that the device is using ABP which does not use an application key")
+                logging.error(f"    Details: {details}")
             else:
-                logging.error(f"An error occurred with status code {status_code}")
-                logging.error(f"Details: {details}")
+                logging.error(f"ChirpstackClient.get_device_app_key(): An error occurred with status code {status_code}")
+                logging.error(f"    Details: {details}")
 
             return
         except Exception as e:
             # Handle other exceptions
-            logging.error(f"An error occurred: {e}")
+            logging.error(f"ChirpstackClient.get_device_app_key(): An error occurred: {e}")
             return
         
         # what key to return is based on lorawan version (For LoRaWAN 1.1 devices return app_key)

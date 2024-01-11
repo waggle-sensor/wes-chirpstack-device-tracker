@@ -83,7 +83,7 @@ class DjangoClient:
             elif status_code == 404:
                 return False
             else:
-                logging.error(f"Unexpected status code in ld_check() for {api_endpoint}: {status_code}")
+                logging.error(f"Unexpected status code in DjangoClient.ld_check() for {api_endpoint}: {status_code}")
                 return False
         else:
             return False
@@ -147,5 +147,5 @@ class DjangoClient:
                 'json': response.json()
             }
         except requests.exceptions.HTTPError as e:
-            logging.error(f"HTTP error occurred in call_api() for {endpoint}: {e}")
+            logging.error(f"HTTP error occurred in DjangoClient.call_api() for {endpoint}: {e}")
             return None
