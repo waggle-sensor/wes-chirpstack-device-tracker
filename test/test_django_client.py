@@ -31,7 +31,13 @@ class TestDjangoClient(unittest.TestCase):
         """
         Mocks the requests.get method in django client's get_lc method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = {
             'id': 1, 
             'node': 'W030', 
@@ -50,7 +56,7 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
-        self.assertEqual(result, {'id': 1, 'node': 'W030', 'lorawan_device': '123456789', 
+        self.assertEqual(result['json_body'], {'id': 1, 'node': 'W030', 'lorawan_device': '123456789', 
         'connection_name': 'test', 'created_at': '2023-11-03T20:49:56.290798Z', 
         'last_seen_at': '2023-11-03T20:49:42Z', 'margin': '25.00', 
         'expected_uplink_interval_sec': 1, 'connection_type': 'OTAA'})
@@ -60,6 +66,11 @@ class TestDjangoClient(unittest.TestCase):
         """
         Mocks the requests.post method in django client's create_lc method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 201,
+            'Custom-Header': 'Mocked-Value',
+        }
         create_data = {
             "node": "W030",
             "lorawan_device": "5556677",
@@ -69,6 +80,7 @@ class TestDjangoClient(unittest.TestCase):
             "connection_type": "OTAA"
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = create_data
         mock_post.return_value = mock_response
 
@@ -77,13 +89,18 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.django_client.auth_header, json=create_data)
-        self.assertEqual(result, create_data)
+        self.assertEqual(result['json_body'], create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
     def test_update_lc(self, mock_patch):
         """
         Mocks the requests.patch method in django client's update_lc method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         data = {
             "node": "W030",
             "lorawan_device": "5556677",
@@ -93,6 +110,7 @@ class TestDjangoClient(unittest.TestCase):
             "connection_type": "OTAA"
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = data
         mock_patch.return_value = mock_response
 
@@ -101,7 +119,7 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
-        self.assertEqual(result, data)
+        self.assertEqual(result['json_body'], data)
 
     @patch("app.django_client.HttpMethod.GET")
     def test_get_ld(self, mock_get):
@@ -109,6 +127,12 @@ class TestDjangoClient(unittest.TestCase):
         Mocks the requests.get method in django client's get_ld method to test it
         """
         mock_response = Mock()
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
+        mock_response.headers = headers
         mock_response.json.return_value = {"deveui":"123456789","device_name":"test","battery_level":"0.01"}
         mock_get.return_value = mock_response
 
@@ -117,19 +141,25 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
-        self.assertEqual(result, {"deveui":"123456789","device_name":"test","battery_level":"0.01"})
+        self.assertEqual(result['json_body'], {"deveui":"123456789","device_name":"test","battery_level":"0.01"})
 
     @patch("app.django_client.HttpMethod.POST")
     def test_create_ld(self, mock_post):
         """
         Mocks the requests.post method in django client's create_ld method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 201,
+            'Custom-Header': 'Mocked-Value',
+        }
         create_data = {
             "deveui": "5556677",
             "device_name": "MyDevice",
             "battery_level": 5.1
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = create_data
         mock_post.return_value = mock_response
 
@@ -138,19 +168,25 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/", headers=self.django_client.auth_header, json=create_data)
-        self.assertEqual(result, create_data)
+        self.assertEqual(result['json_body'], create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
     def test_update_ld(self, mock_patch):
         """
         Mocks the requests.patch method in django client's update_ld method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         data = {
             "deveui": "5556677",
             "device_name": "MyDevice",
             "battery_level": 5.1
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = data
         mock_patch.return_value = mock_response
 
@@ -159,14 +195,20 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
-        self.assertEqual(result, data)
+        self.assertEqual(result['json_body'], data)
 
     @patch("app.django_client.HttpMethod.GET")
     def test_get_lk(self, mock_get):
         """
         Mocks the requests.get method in django client's get_lk method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = {
             "id":9,
             "lorawan_connection":"W030-test-123456789",
@@ -182,7 +224,7 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header)
-        self.assertEqual(result, {"id":9,"lorawan_connection":"W030-test-123456789","app_key":"12345", 
+        self.assertEqual(result['json_body'], {"id":9,"lorawan_connection":"W030-test-123456789","app_key":"12345", 
         "network_Key":"12345","app_session_key":"12345","dev_address":"12345"})
 
     @patch("app.django_client.HttpMethod.POST")
@@ -190,6 +232,11 @@ class TestDjangoClient(unittest.TestCase):
         """
         Mocks the requests.post method in django client's create_lk method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 201,
+            'Custom-Header': 'Mocked-Value',
+        }
         create_data = {        
             "lorawan_connection": "W030-test-123456789", 
             "app_key": "12345",         
@@ -198,6 +245,7 @@ class TestDjangoClient(unittest.TestCase):
             "dev_address": "12345"             
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = create_data
         mock_post.return_value = mock_response
 
@@ -206,13 +254,18 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.django_client.auth_header, json=create_data)
-        self.assertEqual(result, create_data)
+        self.assertEqual(result['json_body'], create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
     def test_update_lk(self, mock_patch):
         """
         Mocks the requests.patch method in django client's update_lk method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         data = {        
             "lorawan_connection": "W030-test-123456789", 
             "app_key": "12345",         
@@ -221,6 +274,7 @@ class TestDjangoClient(unittest.TestCase):
             "dev_address": "12345"             
         }
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = data
         mock_patch.return_value = mock_response
 
@@ -229,7 +283,7 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{DEV_EUI}/", headers=self.django_client.auth_header, json=data)
-        self.assertEqual(result, data)
+        self.assertEqual(result['json_body'], data)
 
     @patch("app.django_client.HttpMethod.GET")
     def test_get_sh(self, mock_get):
@@ -237,6 +291,12 @@ class TestDjangoClient(unittest.TestCase):
         Mocks the requests.get method in django client's get_sh method to test it
         """
         mock_response = Mock()
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
+        mock_response.headers = headers
         mock_response.json.return_value = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
         mock_get.return_value = mock_response
 
@@ -245,15 +305,21 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_get.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header)
-        self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
+        self.assertEqual(result['json_body'], {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
     @patch("app.django_client.HttpMethod.POST")
     def test_create_sh(self, mock_post):
         """
         Mocks the requests.post method in django client's create_sh method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 201,
+            'Custom-Header': 'Mocked-Value',
+        }
         create_data = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = create_data
         mock_post.return_value = mock_response
 
@@ -262,15 +328,21 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_post.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.django_client.auth_header, json=create_data)
-        self.assertEqual(result, create_data)
+        self.assertEqual(result['json_body'], create_data)
 
     @patch("app.django_client.HttpMethod.PATCH")
     def test_update_sh(self, mock_patch):
         """
         Mocks the requests.patch method in django client's update_sh method to test it
         """
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
         data = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
         mock_response = Mock()
+        mock_response.headers = headers
         mock_response.json.return_value = data
         mock_patch.return_value = mock_response
 
@@ -279,7 +351,7 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         mock_patch.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header, json=data)
-        self.assertEqual(result, {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
+        self.assertEqual(result['json_body'], {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
 if __name__ == "__main__":
     unittest.main()
