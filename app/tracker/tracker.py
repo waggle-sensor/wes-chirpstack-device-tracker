@@ -35,43 +35,54 @@ class Tracker(MqttClient):
 
         #load the node manifest
         manifest = Manifest(self.args.manifest)
-        dev_exist = manifest.ld_search(deviceInfo["devEui"])
+        manifest_dev_exist = manifest.ld_search(deviceInfo["devEui"])
 
         #retrieve data from chirpstack
         device_resp = self.c_client.get_device(deviceInfo["devEui"])
         deviceprofile_resp = self.c_client.get_device_profile(deviceInfo["deviceProfileId"])
         act_resp = self.c_client.get_device_activation(deviceInfo["devEui"])
 
-        # if ld exist in manifest then...
-        if dev_exist:
-            #update ld, lc, lk, and manifest                
+        # if lorawan device exist in manifest then...
+        if manifest_dev_exist:
+            #update lorawan device, connection, and key                
             self.update_ld(deviceInfo["devEui"], device_resp)
             self.update_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
             self.update_lk(deviceInfo["devEui"], act_resp, deviceprofile_resp)
-            self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
 
-        #else ld does not exist in manifest then...
+        #else lorawan device does not exist in manifest then...
         else:
-            #if ld exist in django then...
+            #if lorawan device exist in django then...
             if self.d_client.ld_search(deviceInfo["devEui"]): 
-                # relate the device to this node by creating a new lc and lk and updating ld and manifest
+                # update lorawan device
                 self.update_ld(deviceInfo["devEui"], device_resp)
-                lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
-                self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
-                self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
 
-            #else ld does not exist in django then...
+            #else lorawan device does not exist in django then...
             else:
-                # create a new sensor hardware, ld, lc, lk, and update manifest
-                #TODO: creating a sh everytime ld does not exist in django will sometimes create sh duplicates?
-                #       do I have to include another if to check if sh exist in django (similiar to ld if)?
-                #       how will I check if it exists? whats a GUID that is shared for all devices 
-                sh_id = self.create_sh(deviceprofile_resp)
+                #TODO: What is a better way to check if sensor hardware exists? 
+                #   - whats a GUID for sensor hardwares that is shared throughout waggle that also does not change
+                #   - hw_model will change since we will update it.
+                #       - right now hw_model is filled as best as the tracker can
+                #       - since we will change it, duplicates will be created
+                hw_model = clean_hw_model(deviceprofile_resp.device_profile.name)
+                # if sensor hardware exist in django then...
+                if self.d_client.sh_search(hw_model):
+                    # get sensor hardware from django
+                    response = self.d_client.get_sh(hw_model)
+                    sh_id = response['json_body'].get('id')
+                #else sensor hardware does not exist in django then...
+                else:
+                    # create a new sensor hardware
+                    sh_id = self.create_sh(deviceprofile_resp)
+                
+                # create a new lorawan device
                 self.create_ld(deviceInfo["devEui"], sh_id, device_resp)
-                lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
-                self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
-                self.update_manifest(deviceInfo["devEui"], dev_exist, manifest, device_resp, deviceprofile_resp)
+            
+            #create a new lorawan connection and key
+            lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
+            self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
 
+        #update manifest
+        self.update_manifest(deviceInfo["devEui"], manifest_dev_exist, manifest, device_resp, deviceprofile_resp)
         return
     
     def update_ld(self, deveui: str, device_resp: dict):
@@ -103,6 +114,7 @@ class Tracker(MqttClient):
             "hardware": sh_id,
             "deveui": deveui
         }
+        self.d_client.create_ld(ld_data)
 
         return
 
@@ -256,7 +268,11 @@ class Tracker(MqttClient):
                 "battery_level": battery_level,
             }
         }
-        if not dev_exist: #include hardware in manifest_data when the device is not in manifest
+        #include hardware in manifest_data when the device is not in manifest
+        #TODO: consider using Tanuki to fill out fields like description, manufacturer, etc. in sensor hardware
+        if not dev_exist:
+            #Sensor hardware data is always coming from chirpstack client, so if django has updated
+            #   sensor hardware data the manifest will not show it until update-stack.sh runs
             hardware = deviceprofile_resp.device_profile.name
             hw_model = clean_hw_model(deviceprofile_resp.device_profile.name)
             description = deviceprofile_resp.device_profile.description
