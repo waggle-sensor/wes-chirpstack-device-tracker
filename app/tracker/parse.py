@@ -10,7 +10,7 @@ def replace_spaces(str: str) -> str:
 
 def clean_hw_model(str: str) -> str:
     """
-    Makes the string capatible with hw_model field
+    Makes the string compatible with hw_model field
     """
     temp = re.sub(r'\([^)]*\)', '', str) # Remove characters inside parentheses including parantheses
     temp = temp.strip()
