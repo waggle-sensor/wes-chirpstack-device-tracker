@@ -41,8 +41,11 @@ class Manifest:
         """
         Return manifest based on filepath
         """
-        with open(self.filepath, 'r') as f:
-            return json.load(f)
+        try:
+            with open(self.filepath, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {}
 
     def save_manifest(self):
         """
@@ -50,10 +53,11 @@ class Manifest:
         """
         with tempfile.NamedTemporaryFile(mode='w') as temp_file:
             json.dump(self.dict, temp_file, indent=3)
-            try:
-                os.replace(temp_file.name, self.filepath)
-            except Exception as e:
-                logging.error(f"Manifest.save_manifest(): {e}")
+            with open(self.filepath, 'w') as original_file: # Handles FileNotFoundError case
+                try:
+                    os.replace(temp_file.name, original_file.name)
+                except Exception as e:
+                    logging.error(f"Manifest.save_manifest(): {e}")
         return
 
     def lc_check(self) -> bool:
