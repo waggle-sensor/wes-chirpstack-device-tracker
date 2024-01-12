@@ -353,5 +353,85 @@ class TestDjangoClient(unittest.TestCase):
         mock_patch.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/{HW_MODEL}/", headers=self.django_client.auth_header, json=data)
         self.assertEqual(result['json_body'], {"hardware": "test","hw_model": HW_MODEL, "description": "test"})
 
+    @patch("app.django_client.HttpMethod.GET")
+    def test_ld_search_found_happy_path(self, mock_get):
+        """
+        Mocks the requests.get method in django client's ld_search method to test when ld is found
+        """
+        mock_response = Mock()
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 200,
+            'Custom-Header': 'Mocked-Value',
+        }
+        mock_response.headers = headers
+        mock_response.json.return_value = {"deveui":"123456789","device_name":"test","battery_level":"0.01"}
+        mock_get.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.ld_search(dev_eui=DEV_EUI)
+
+        # Assertions
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
+        self.assertTrue(result)
+
+    @patch("app.django_client.HttpMethod.GET")
+    def test_ld_search_Not_found_happy_path(self, mock_get):
+        """
+        Mocks the requests.get method in django client's ld_search method to test when ld is not found
+        """
+        mock_response = Mock()
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 404,
+            'Custom-Header': 'Mocked-Value',
+        }
+        mock_response.headers = headers
+        mock_response.json.return_value = {}
+        mock_get.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.ld_search(dev_eui=DEV_EUI)
+
+        # Assertions
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
+        self.assertFalse(result)
+
+    @patch("app.django_client.HttpMethod.GET")
+    def test_ld_search_Unexpected_status(self, mock_get):
+        """
+        Mocks the requests.get method in django client's ld_search method to test when Unexpected status code is returned
+        """
+        mock_response = Mock()
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 500,
+            'Custom-Header': 'Mocked-Value',
+        }
+        mock_response.headers = headers
+        mock_response.json.return_value = {}
+        mock_get.return_value = mock_response
+
+        # Call the method under test
+        result = self.django_client.ld_search(dev_eui=DEV_EUI)
+
+        # Assertions
+        mock_get.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{DEV_EUI}/", headers=self.django_client.auth_header)
+        self.assertFalse(result)
+
+    @patch("app.django_client.DjangoClient.call_api")
+    def test_ld_search_No_response(self, mock_call_api):
+        """
+        Mocks DjangoClient.call_api() method in ld_search method to test when response is None
+        """
+        mock_call_api.return_value = None
+
+        # Call the method under test
+        result = self.django_client.ld_search(dev_eui=DEV_EUI)
+
+        # Assertions
+        self.assertFalse(result)
+
+
 if __name__ == "__main__":
     unittest.main()
