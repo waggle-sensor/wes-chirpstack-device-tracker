@@ -10,7 +10,7 @@ class Manifest:
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.dict = self.load_manifest()
-        self.structure =  { #TODO: change name to lw_structure
+        self.lw_structure =  {
             "connection_name": None,
             "created_at": None,
             "last_seen_at": None,
@@ -109,7 +109,7 @@ class Manifest:
         else:
             return False
 
-        return self.check_keys(json_data, self.structure)
+        return self.check_keys(json_data, self.lw_structure)
             
     def has_requiredKeys(self, data: dict) -> bool:
         """
