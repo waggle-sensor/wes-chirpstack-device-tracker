@@ -138,7 +138,7 @@ class DjangoClient:
         response = self.call_api(HttpMethod.GET, api_endpoint)
 
         if response:
-            headers = response['headers'].get('status-code')
+            status_code = response['headers'].get('status-code')
             if status_code == 200:
                 return True
             elif status_code == 404:
