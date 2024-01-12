@@ -1,6 +1,7 @@
 import unittest
+import requests
 from unittest.mock import Mock, patch, MagicMock
-from app.django_client import DjangoClient
+from app.django_client import DjangoClient, HttpMethod
 
 DEV_EUI = 123456789
 API_INTERFACE = "https://auth.sagecontinuum.org"
@@ -510,6 +511,24 @@ class TestDjangoClient(unittest.TestCase):
 
         # Assertions
         self.assertFalse(result)
+
+    @patch("app.django_client.HttpMethod.GET")
+    def test_call_api_sad_path(self, mock_get):
+        """
+        Test DjangoClient.call_api() with a bad response
+        """
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")
+        mock_get.return_value = mock_response
+
+        #Mock endpoint
+        api_endpoint = f"{SH_ROUTER}{HW_MODEL}/"
+
+        #Call the method under test
+        result = self.django_client.call_api(HttpMethod.GET, api_endpoint)
+
+        # Assert
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":
