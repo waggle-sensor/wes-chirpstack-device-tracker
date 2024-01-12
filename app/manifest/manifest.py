@@ -1,7 +1,7 @@
 import logging
 import json
-import fcntl
-import time
+import tempfile
+import os
 
 class Manifest:
     """
@@ -10,7 +10,7 @@ class Manifest:
     def __init__(self, filepath: str):
         self.filepath = filepath
         self.dict = self.load_manifest()
-        self.structure =  {
+        self.structure =  { #TODO: change name to lw_structure
             "connection_name": None,
             "created_at": None,
             "last_seen_at": None,
@@ -37,40 +37,24 @@ class Manifest:
             }
         }
 
-    #TODO: add a file lock mechanism so that it doesn't interfere with update-stack.sh
-    #   - I also have to add it in update-stack.sh
-    #   - https://chat.openai.com/share/4bfca9a9-705d-4403-9e01-bba45236bc02
-    # def wait_for_lock(self):
-    #     while True:
-    #         try:
-    #             # Attempt to acquire an exclusive lock
-    #             fcntl.flock(self.filepath, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    #             return
-    #         except BlockingIOError:
-    #             # File is locked, wait and retry
-    #             time.sleep(1)
-
-    def load_manifest(self):
+    def load_manifest(self) -> dict:
         """
         Return manifest based on filepath
         """
         with open(self.filepath, 'r') as f:
-            # Wait for the lock
-            # self.wait_for_lock()
-            # Release the lock
-            # fcntl.flock(self.filepath, fcntl.LOCK_UN)
             return json.load(f)
 
     def save_manifest(self):
         """
-        Save manifest file
+        Save manifest file atomically
         """
-        with open(self.filepath, 'w') as f:
-            # Wait for the lock
-            # self.wait_for_lock()
-            json.dump(self.dict, f, indent=3)
-            # Release the lock
-            # fcntl.flock(self.filepath, fcntl.LOCK_UN)
+        with tempfile.NamedTemporaryFile(mode='w') as temp_file:
+            json.dump(self.dict, temp_file, indent=3)
+            try:
+                os.replace(temp_file.name, self.filepath)
+            except Exception as e:
+                logging.error(f"Manifest.save_manifest(): {e}")
+        return
 
     def lc_check(self) -> bool:
         """
@@ -82,7 +66,7 @@ class Manifest:
         """
         Search the manifest for a lorawan device return true if found
         """
-        #consider using a bloom filter: if the count of lorawan connections gets to be a 
+        #TODO: consider using a bloom filter: if the count of lorawan connections gets to be a 
         # huge number the computation will be too high - Francisco Lozano 01/09/2024
         if self.lc_check():
             for lc in self.dict["lorawanconnections"]:
