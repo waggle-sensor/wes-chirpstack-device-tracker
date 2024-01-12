@@ -514,5 +514,41 @@ class TestListAggPagination(unittest.TestCase):
         # Assert the result
         self.assertEqual(aggregated_records, ["result_page1", "result_page2"])
 
+class TestGetDevice(unittest.TestCase):
+
+    def setUp(self):
+        # Mock the arguments
+        self.mock_args = Mock()
+        self.mock_args.chirpstack_api_interface = CHIRPSTACK_API_INTERFACE
+        self.mock_args.chirpstack_account_email = CHIRPSTACK_ACT_EMAIL
+        self.mock_args.chirpstack_account_password = CHIRPSTACK_ACT_PASSWORD
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_happy_path(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device() method's happy path
+        """
+
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.Get.return_value = Mock(device_info="mock_device_info")
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device
+        device_info = client.get_device(mock_dev_eui)
+
+        # Assert the result
+        self.assertEqual(device_info.device_info, "mock_device_info")
+
 if __name__ == "__main__":
     unittest.main()
