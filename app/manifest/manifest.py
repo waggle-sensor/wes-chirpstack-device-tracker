@@ -2,6 +2,8 @@ import logging
 import json
 import tempfile
 import os
+import argparse
+from pathlib import Path
 
 class Manifest:
     """
@@ -51,14 +53,17 @@ class Manifest:
         """
         Save manifest file atomically
         """
-        with tempfile.NamedTemporaryFile(mode='w') as temp_file:
+        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False)  # Avoid automatic deletion
+        try:
             json.dump(self.dict, temp_file, indent=3)
-            with open(self.filepath, 'w') as original_file: # Handles FileNotFoundError case
-                try:
-                    os.replace(temp_file.name, original_file.name)
-                except Exception as e:
-                    logging.error(f"Manifest.save_manifest(): {e}")
+            temp_file.close()
+            os.replace(temp_file.name, self.filepath)
+        except Exception as e:
+            logging.error(f"Manifest.save_manifest(): {e}")
+        if os.path.exists(temp_file.name):
+            os.unlink(temp_file.name)
         return
+
 
     def lc_check(self) -> bool:
         """
@@ -187,3 +192,24 @@ class Manifest:
         self.save_manifest()
 
         return
+
+#used for testing
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--manifest",
+        default=os.getenv("MANIFEST_FILE"),
+        type=Path,
+        help="path to node manifest file",
+    )
+
+    #get args
+    args = parser.parse_args()
+
+    manifest = Manifest(args.manifest)
+    manifest.dict = {"key": "value"}
+    manifest.save_manifest()
+
+if __name__ == "__main__":
+
+    main()
