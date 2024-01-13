@@ -64,7 +64,6 @@ class Manifest:
             os.unlink(temp_file.name)
         return
 
-
     def lc_check(self) -> bool:
         """
         Check if there is a lorawan connection array in Manifest
