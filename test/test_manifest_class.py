@@ -1,6 +1,7 @@
 import unittest
 import json
 from app.manifest import Manifest
+from manifest_sample import MANIFEST
 from unittest.mock import (
     Mock, 
     patch, 
@@ -327,6 +328,8 @@ class TestCheckKeys(unittest.TestCase):
             }
         }
 
+        self.assertFalse(self.manifest.check_keys(data, self.manifest.lw_structure))
+
     def test_check_keys_wrong_key_name(self):
         """
         Test when a key is named wrong
@@ -398,6 +401,38 @@ class TestIsValidStruc(unittest.TestCase):
         self.assertTrue(self.manifest.is_valid_struc(data))
 
     def test_is_valid_struc_false(self):
+        """
+        Test when a key does not follow the manifest structure
+        """
+        # Arrange
+        data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "deveui": "123456",
+            "lorawandevice": {
+                "name": "SFM1x Sap Flow",
+                "battery_level": 10,
+                "hw_model": "SFM1x", #<- wrong placement
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.assertFalse(self.manifest.is_valid_struc(data))
+
+    def test_is_valid_struc_valid_json_false(self):
         """
         Test when data is not a valid json format
         """
@@ -612,11 +647,7 @@ class TestHasRequiredKeys(unittest.TestCase):
             "lorawandevice": 0 # <- wrong type
         }
 
-
-        self.assertFalse(self.manifest.has_requiredKeys(data))
-
-        
-
+        self.assertFalse(self.manifest.has_requiredKeys(data)) 
 
 if __name__ == '__main__':
     unittest.main()
