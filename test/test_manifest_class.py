@@ -649,5 +649,152 @@ class TestHasRequiredKeys(unittest.TestCase):
 
         self.assertFalse(self.manifest.has_requiredKeys(data))
 
+class TestUpdateManifest(unittest.TestCase):
+    def setUp(self):
+        self.filepath = MANIFEST_FILEPATH
+        self.manifest = Manifest(self.filepath)
+        self.manifest.dict = MANIFEST
+
+    def test_update_manifest_happy_path(self):
+        """
+        Test succesfully updating the manifest
+        """
+        # Arrange
+        new_data = {
+            "connection_name": "test",
+            "created_at": "2021-12-13T19:47:45.355000Z",
+            "last_seen_at": "2021-12-13T19:47:45.355000Z",
+            "margin": 0,
+            "expected_uplink_interval_sec": 0,
+            "connection_type": "ABP",
+            "lorawandevice": {
+                "deveui": "7d1f5420e81235c1",
+                "name": "test",
+                "battery_level": 0,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.manifest.update_manifest(new_data)
+
+        #Assert if dict was updated
+        self.assertTrue(self.manifest.dict["lorawanconnections"][0] == new_data) #self.manifest.dict["lorawanconnections"][0] is SFM1x device 
+
+    def test_update_manifest_no_lorawan_connections(self):
+        """
+        Test succesfully updating the manifest when there is no lorawanconnections array
+        """
+        # Arrange
+        del self.manifest.dict["lorawanconnections"] #remove lc array
+        new_data = {
+            "connection_name": "test",
+            "created_at": "2021-12-13T19:47:45.355000Z",
+            "last_seen_at": "2021-12-13T19:47:45.355000Z",
+            "margin": 0,
+            "expected_uplink_interval_sec": 0,
+            "connection_type": "ABP",
+            "lorawandevice": {
+                "deveui": "7d1f5420e81235c1",
+                "name": "test",
+                "battery_level": 0,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.manifest.update_manifest(new_data)
+
+        #Assert dict was updated
+        self.assertTrue(self.manifest.dict["lorawanconnections"][0] == new_data) #self.manifest.dict["lorawanconnections"][0] is new device
+
+    def test_update_manifest_false_valid_struc(self):
+        """
+        Test update fails when data does not follow the manifest structure
+        """
+        # Arrange
+        new_data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "lorawandevice": {
+                "name": "SFM1x Sap Flow",
+                "deveui": "7d1f5420e81235c1",
+                "battery_level": 10,
+                "hw_model": "SFM1x", #<- wrong placement
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.manifest.update_manifest(new_data)
+
+        #Assert dict was not updated
+        self.assertFalse(self.manifest.dict["lorawanconnections"][0] == new_data)
+
+    def test_update_manifest_no_required_key(self):
+        """
+        Test update fails when data does not have required keys (ex; deveui)
+        """
+        # Arrange
+        del self.manifest.dict["lorawanconnections"] #remove lc array
+        new_data = {
+            "connection_name": "test",
+            "created_at": "2021-12-13T19:47:45.355000Z",
+            "last_seen_at": "2021-12-13T19:47:45.355000Z",
+            "margin": 0,
+            "expected_uplink_interval_sec": 0,
+            "connection_type": "ABP",
+            "lorawandevice": { #deveui is missing
+                "name": "test",
+                "battery_level": 0,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.manifest.update_manifest(new_data)
+
+        #Assert lorawan connection was not inserted to dict
+        self.assertTrue(len(self.manifest.dict["lorawanconnections"]) == 0)
+
 if __name__ == '__main__':
     unittest.main()
