@@ -91,9 +91,9 @@ class Manifest:
         Check for valid json format
         """
         try:
-            json.loads(data)
+            json.dumps(data)
             return True
-        except json.JSONDecodeError as e:
+        except TypeError as e:
             logging.error(f"Manifest.is_valid_json(): {e}")
             return False
 
