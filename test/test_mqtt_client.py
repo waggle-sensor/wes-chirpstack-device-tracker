@@ -158,7 +158,36 @@ class TestOnLog(unittest.TestCase):
 
 #TODO: this function is still in progress
 class TestOnMessage(unittest.TestCase):
-    pass
+
+    def setUp(self):
+        # Mock the MqttClient instance
+        mock_args = Mock()
+        self.mqtt_client = MqttClient(mock_args)
+        #Mock the message
+        self.Message = Mock()
+        self.Message.payload = f'{MESSAGE}'.encode("utf-8")
+
+    @patch('app.mqtt_client.logging')
+    def test_on_message_happy_path(self, mock_logging):
+        """
+        Test on_message() happy path
+        """
+        expected_data = (
+            "LORAWAN Message received by device Test device with deveui 0101010101010101:" + 
+            self.Message.payload.decode("utf-8")
+        )
+        client = Mock()
+        userdata = Mock()
+
+        # Assert Logs
+        with self.assertLogs(level='DEBUG') as log:
+            # Call the on_message method
+            self.mqtt_client.on_message(client, userdata, self.Message)
+            self.assertEqual(len(log.output), 6)
+            self.assertEqual(len(log.records), 6)
+            self.assertIn(expected_data, log.output[0])
+            self.assertIn("Signal Performance:", log.output[1])
+
 
 class TestLogMessage(unittest.TestCase):
 
