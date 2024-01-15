@@ -99,10 +99,14 @@ class Manifest:
 
     def check_keys(self, data: dict, structure: dict) -> bool:
         """
-        A recursive function that iterates through the keys defined in the structure.
+        A recursive function that iterates through the keys defined in data 
+        to check if it conforms to manifest structure.
         If a key is a dict, it recursively checks the nested keys. 
         """
-        return all(key in data and (type(data[key]) == dict and self.check_keys(data[key], structure[key]) if isinstance(structure[key], dict) else True) for key in structure)
+        return all(
+            False if key not in structure else (isinstance(data[key], dict) and self.check_keys(data[key], structure[key]) if isinstance(structure[key], dict) else True)
+            for key in data
+        )
 
     def is_valid_struc(self, data: dict) -> bool:
         """
