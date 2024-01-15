@@ -226,6 +226,138 @@ class TestIsValidJson(unittest.TestCase):
         data = {'complex': 1 + 2j}
         self.assertFalse(self.manifest.is_valid_json(data))
 
+class TestCheckKeys(unittest.TestCase):
+    def setUp(self):
+        self.filepath = MANIFEST_FILEPATH
+        self.manifest = Manifest(self.filepath)
+
+    def test_check_keys_true(self):
+        """
+        Test when all keys follow the manifest structure
+        """
+        # Arrange
+        data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "lorawandevice": {
+                "deveui": "123456",
+                "name": "SFM1x Sap Flow",
+                "battery_level": 10,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ],
+                    "description": "# SFM1x Sap Flow Meter\r\n\r\nThe SFM1x Sap Flow Meter enables individual tree water use and health to be monitored in real time. This is because the SFM has integrated data transmission direct to cloud using IoT/LTE-M Cat-M1. The SFM1x Sap Flow Meter is a discrete standalone instrument based upon the Heat Ratio Method. This measurement principle has proven to be a robust and flexible technique to measure plant water use; being able to measure high, low, zero and reverse flows in a large range of plant anatomies & species from herbaceous to woody, and stem sizes > 10 mm in diameter. The theoretical basis and ratio metric design of the Heat Ratio Method makes possible the measurement of high, low, zero and reverse flows. The SFM1x Sap Flow Meter consists of two temperature sensing needles arranged equidistance above and below a central heater. These needles are inserted into the water conducting tissue of the plant by drilling 3 small parallel holes. Heat is then pulsed every 10 minutes into the water conducting tissue of the plant. The heat is used as a tracer to directly measure the velocity of water movement in the plant stem."
+                }
+            }
+        }
+
+        self.assertTrue(self.manifest.check_keys(data, self.manifest.lw_structure))
+
+    def test_check_keys_deveui_false(self):
+        """
+        Test when a deveui does not follow the manifest structure
+        """
+        # Arrange
+        data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "deveui": "123456", #<- wrong placement
+            "lorawandevice": {
+                "name": "SFM1x Sap Flow",
+                "battery_level": 10,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ],
+                    "description": "# SFM1x Sap Flow Meter\r\n\r\nThe SFM1x Sap Flow Meter enables individual tree water use and health to be monitored in real time. This is because the SFM has integrated data transmission direct to cloud using IoT/LTE-M Cat-M1. The SFM1x Sap Flow Meter is a discrete standalone instrument based upon the Heat Ratio Method. This measurement principle has proven to be a robust and flexible technique to measure plant water use; being able to measure high, low, zero and reverse flows in a large range of plant anatomies & species from herbaceous to woody, and stem sizes > 10 mm in diameter. The theoretical basis and ratio metric design of the Heat Ratio Method makes possible the measurement of high, low, zero and reverse flows. The SFM1x Sap Flow Meter consists of two temperature sensing needles arranged equidistance above and below a central heater. These needles are inserted into the water conducting tissue of the plant by drilling 3 small parallel holes. Heat is then pulsed every 10 minutes into the water conducting tissue of the plant. The heat is used as a tracer to directly measure the velocity of water movement in the plant stem."
+                }
+            }
+        }
+
+        self.assertFalse(self.manifest.check_keys(data, self.manifest.lw_structure))
+
+    def test_check_keys_hw_model_false(self):
+        """
+        Test when a hw_model does not follow the manifest structure
+        """
+        # Arrange
+        data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "deveui": "123456",
+            "lorawandevice": {
+                "name": "SFM1x Sap Flow",
+                "battery_level": 10,
+                "hw_model": "SFM1x", #<- wrong placement
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": [
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+    def test_check_keys_wrong_key_name(self):
+        """
+        Test when a key is named wrong
+        """
+        # Arrange
+        data = {
+            "connection_name": "SFM",
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": "2023-12-13T19:47:45.355000Z",
+            "margin": 5,
+            "expected_uplink_interval_sec": 40,
+            "connection_type": "OTAA",
+            "lorawandevice": {
+                "deveui": "123456",
+                "name": "SFM1x Sap Flow",
+                "battery_level": 10,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capability": [ #<- wrong name
+                        "lorawan"
+                    ]
+                }
+            }
+        }
+
+        self.assertFalse(self.manifest.check_keys(data, self.manifest.lw_structure))
 
 
 if __name__ == '__main__':
