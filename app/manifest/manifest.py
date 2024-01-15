@@ -205,14 +205,8 @@ def main():
         type=Path,
         help="path to node manifest file",
     )
-
-    #get args
     args = parser.parse_args()
-
     manifest = Manifest(args.manifest)
-    manifest.dict = {"key": "value"}
-    manifest.save_manifest()
 
 if __name__ == "__main__":
-
     main()
