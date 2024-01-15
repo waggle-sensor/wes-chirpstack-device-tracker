@@ -310,9 +310,9 @@ class TestCheckKeys(unittest.TestCase):
             "margin": 5,
             "expected_uplink_interval_sec": 40,
             "connection_type": "OTAA",
-            "deveui": "123456",
             "lorawandevice": {
                 "name": "SFM1x Sap Flow",
+                "deveui": "123456",
                 "battery_level": 10,
                 "hw_model": "SFM1x", #<- wrong placement
                 "hardware": {
@@ -412,9 +412,9 @@ class TestIsValidStruc(unittest.TestCase):
             "margin": 5,
             "expected_uplink_interval_sec": 40,
             "connection_type": "OTAA",
-            "deveui": "123456",
             "lorawandevice": {
                 "name": "SFM1x Sap Flow",
+                "deveui": "123456",
                 "battery_level": 10,
                 "hw_model": "SFM1x", #<- wrong placement
                 "hardware": {
@@ -647,7 +647,7 @@ class TestHasRequiredKeys(unittest.TestCase):
             "lorawandevice": 0 # <- wrong type
         }
 
-        self.assertFalse(self.manifest.has_requiredKeys(data)) 
+        self.assertFalse(self.manifest.has_requiredKeys(data))
 
 if __name__ == '__main__':
     unittest.main()
