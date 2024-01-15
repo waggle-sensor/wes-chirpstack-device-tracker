@@ -205,6 +205,28 @@ class TestLdSearch(unittest.TestCase):
 
         self.assertFalse(self.manifest.ld_search(deveui))
 
+class TestIsValidJson(unittest.TestCase):
+    def setUp(self):
+        self.filepath = MANIFEST_FILEPATH
+        self.manifest = Manifest(self.filepath)
+
+    def test_is_valid_json_true(self):
+        """
+        Test when json is valid
+        """
+        # Arrange
+        data = {"key": "value"}
+        self.assertTrue(self.manifest.is_valid_json(data))
+
+    def test_is_valid_json_false(self):
+        """
+        Test when json is not valid
+        """
+        # Arrange
+        data = {'complex': 1 + 2j}
+        self.assertFalse(self.manifest.is_valid_json(data))
+
+
 
 if __name__ == '__main__':
     unittest.main()
