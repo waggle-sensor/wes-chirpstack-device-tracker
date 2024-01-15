@@ -94,5 +94,30 @@ class TestSaveManifest(unittest.TestCase):
             mock_os_unlink.assert_called_once_with(mock_named_tempfile.return_value.name)
             mock_logging_error.assert_called_once_with("Manifest.save_manifest(): Simulated error")
 
+class TestLcCheck(unittest.TestCase):
+    def setUp(self):
+        self.filepath = MANIFEST_FILEPATH
+        self.manifest = Manifest(self.filepath)
+
+    def test_lc_check_found(self):
+        """
+        Test when lorawan connection is found
+        """
+        # Arrange
+        json_content = {"lorawanconnections": []}
+        self.manifest.dict = json_content
+
+        self.assertTrue(self.manifest.lc_check())
+
+    def test_lc_check_not_found(self):
+        """
+        Test when lorawan connection is not found
+        """
+        # Arrange
+        json_content = {"key": "value"}
+        self.manifest.dict = json_content
+
+        self.assertFalse(self.manifest.lc_check())
+
 if __name__ == '__main__':
     unittest.main()
