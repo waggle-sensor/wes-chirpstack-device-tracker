@@ -1,4 +1,4 @@
-MANIFEST = """{
+MANIFEST = {
     "vsn": "W001",
     "name": "000077A12S23AD1A",
     "phase": "Deployed",
@@ -6,7 +6,7 @@ MANIFEST = """{
     "address": "OVER, HERE, TX",
     "gps_lat": 31.602896,
     "gps_lon": 11.001716,
-    "modem": null,
+    "modem": None,
     "tags": [],
     "computes": [
         {
@@ -29,7 +29,7 @@ MANIFEST = """{
                 "cpu": "6000",
                 "cpu_ram": "8092",
                 "gpu_ram": "8092",
-                "shared_ram": true
+                "shared_ram": True
             }
         },
         {
@@ -51,7 +51,7 @@ MANIFEST = """{
                 "cpu": "4000",
                 "cpu_ram": "4096",
                 "gpu_ram": "",
-                "shared_ram": true
+                "shared_ram": True
             }
         }
     ],
@@ -321,4 +321,3 @@ MANIFEST = """{
         }
     ]
 }
-"""
