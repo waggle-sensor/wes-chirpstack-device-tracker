@@ -69,5 +69,30 @@ class TestSaveManifest(unittest.TestCase):
             mock_os_unlink.assert_called_once_with(mock_named_tempfile.return_value.name)
             mock_logging_error.assert_not_called()
 
+    @patch('app.manifest.tempfile.NamedTemporaryFile')
+    @patch('app.manifest.os.replace')
+    @patch('app.manifest.os.unlink')
+    def test_save_manifest_exception_handling(self, mock_os_unlink, mock_os_replace, mock_named_tempfile):
+        """
+        Test the exception handling
+        """
+        # Arrange
+        expected_json_content = {"key": "value"}
+        self.manifest.dict = expected_json_content
+
+        # Mocking
+        with patch("app.manifest.logging.error") as mock_logging_error:
+            
+            # Simulate an exception during the save process
+            mock_os_replace.side_effect = Exception("Simulated error")
+
+            # Act
+            self.manifest.save_manifest()
+
+            # Assert
+            mock_os_replace.assert_called_once_with(mock_named_tempfile.return_value.name, self.manifest.filepath)
+            mock_os_unlink.assert_called_once_with(mock_named_tempfile.return_value.name)
+            mock_logging_error.assert_called_once_with("Manifest.save_manifest(): Simulated error")
+
 if __name__ == '__main__':
     unittest.main()
