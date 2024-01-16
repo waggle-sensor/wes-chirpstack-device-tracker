@@ -156,7 +156,6 @@ class TestOnLog(unittest.TestCase):
             self.assertEqual(len(log.records), 1)
             self.assertIn("test", log.output[0])
 
-#TODO: this function is still in progress
 class TestOnMessage(unittest.TestCase):
 
     def setUp(self):
