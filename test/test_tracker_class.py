@@ -76,7 +76,24 @@ def Mock_gdp_ret_val():
 
     return val
 
+def Mock_gda_ret_val():
+    """
+    Mock ChirpstackClient.get_device_activation() return value
+    """
+    val = MagicMock()
+    val.device_activation = MagicMock()
+    val.device_activation.dev_eui = "9821230120031b00"
+    val.device_activation.dev_addr = "00d65cd3"
+    val.device_activation.app_s_key = "6e0f556d5975b872d744aee2c1239d55"
+    val.device_activation.nwk_s_enc_key = "123456785975b872d744aee2a1239d12"
+    val.device_activation.s_nwk_s_int_key = "1234567891023s89s53122s5678d9"
+    val.device_activation.f_nwk_s_int_key = "23655489416521d5615a61651d652"
+    val.device_activation.f_cnt_up = 200
+    val.device_activation.n_f_cnt_down = 23
+    val.device_activation.a_f_cnt_down = 10
 
+    return val
+    
 class TestUpdateLd(unittest.TestCase):
 
     @patch('app.chirpstack_client.grpc.insecure_channel')
