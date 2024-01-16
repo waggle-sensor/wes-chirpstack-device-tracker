@@ -5,7 +5,6 @@ def epoch_to_UTC(sec: int, nanos: int) -> datetime:
     """
     Convert seconds since epoch to a UTC datetime object
     """
-    #TODO: check if this converts the date correctly
     total_seconds = sec + nanos / 1e9 # Calculate the total seconds with nanoseconds 
     datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds) # Convert seconds since epoch to a datetime object
     return datetime_obj_utc
