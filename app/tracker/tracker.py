@@ -1,10 +1,10 @@
 import datetime
 import logging
 from argparse import Namespace
-from chirpstack_client import ChirpstackClient
-from django_client import DjangoClient
-from mqtt_client import MqttClient
-from manifest import Manifest
+from app.chirpstack_client import ChirpstackClient
+from app.django_client import DjangoClient
+from app.mqtt_client import MqttClient
+from app.manifest import Manifest
 from .parse import *
 
 class Tracker(MqttClient):
@@ -96,7 +96,7 @@ class Tracker(MqttClient):
             "name": dev_name,
             "battery_level": battery_level
         }
-        self.d_client.update_ld(deveui, data)
+        self.d_client.update_ld(deveui, ld_data)
 
         return
 
