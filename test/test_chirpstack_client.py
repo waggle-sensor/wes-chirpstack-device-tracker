@@ -262,9 +262,9 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
-    def test_get_device_app_key_happy_path(self, mock_insecure_channel, mock_device_service_stub):
+    def test_get_device_app_key_happy_path_1(self, mock_insecure_channel, mock_device_service_stub):
         """
-        Test get_device_app_key() method's happy path
+        Test get_device_app_key() method's happy path with lorawan version < 5
         """
         # Mock the gRPC channel and login response
         mock_channel = Mock()
@@ -303,6 +303,50 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
         # Assert the result
         self.assertEqual(app_key, "mock_nwk_key")
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_get_device_app_key_happy_path_2(self, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device_app_key() method's happy path with lorawan version = 5
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+
+        # Create a mock for the device keys response
+        mock_device_keys = Mock()
+        mock_device_keys.device_keys.nwk_key = "mock_nwk_key"
+        mock_device_keys.device_keys.app_key = "mock_app_key"
+        
+        # Set the return value for the GetKeys method
+        mock_device_service_stub_instance.GetKeys.return_value = mock_device_keys
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock get_device_profile response
+        deviceprofile_resp = { 
+            "device_profile": {
+                "id": "cf2aec2f-03e1-4a60-a32c-0faeef5730d8",
+                "tenant_id": "52f14cd4-c6f1-4fbd-8f87-4025e1d49242",
+                "name": "MFR node",
+                "mac_version": 5
+            }
+        }
+        lw_v = deviceprofile_resp['device_profile']['mac_version']
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call get_device_app_key
+        app_key = client.get_device_app_key(mock_dev_eui, lw_v)
+
+        # Assert the result
+        self.assertEqual(app_key, "mock_app_key")
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
