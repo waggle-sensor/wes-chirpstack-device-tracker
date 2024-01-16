@@ -237,7 +237,7 @@ class Tracker(MqttClient):
         }
         response = self.d_client.create_sh(sh_data)
         if response:
-            return response.json.id
+            return response['json_body'].get('id')
         else:
             logging.error("Tracker.create_sh(): d_client.create_sh() did not return a response")
             return None
