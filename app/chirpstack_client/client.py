@@ -1,8 +1,11 @@
 import grpc
-from grpc import _channel as channel
-from chirpstack_api import api
 import logging
 import sys
+import os
+import argparse
+from grpc import _channel as channel
+from chirpstack_api import api
+
 
 #Pagination
 LIMIT = 100 #Max number of records to return in the result-set.
@@ -222,3 +225,51 @@ class ChirpstackClient:
                 break
 
         return records
+
+#used for testing
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--chirpstack-account-email",
+        default=os.getenv("CHIRPSTACK_ACCOUNT_EMAIL"),
+        help="The Chirpstack Account's email to use to access APIs",
+    )
+    parser.add_argument(
+        "--chirpstack-account-password",
+        default=os.getenv("CHIRPSTACK_ACCOUNT_PASSWORD"),
+        help="The Chirpstack Account's password to use to access APIs",
+    )
+    parser.add_argument(
+        "--chirpstack-api-interface",
+        default=os.getenv("CHIRPSTACK_API_INTERFACE"),
+        help="Chirpstack's server API interface. The port is usually 8080",
+    )
+    args = parser.parse_args()
+    chirpstack_client = ChirpstackClient(args)
+
+    test_eui = "2959df8baf3c667f"
+    test_profile = "e7d0c6c3-0a68-4ae6-aa00-1e3c49918bce"
+    mfr_eui = "98208e0000032a15"
+    mfr_profile = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
+
+    device_resp = chirpstack_client.get_device(mfr_eui)
+    deviceprofile_resp = chirpstack_client.get_device_profile(mfr_profile)
+    act_resp = chirpstack_client.get_device_activation(mfr_eui)
+    key_resp = chirpstack_client.get_device_app_key(mfr_eui,deviceprofile_resp.device_profile.mac_version)
+
+    print("device_resp:", device_resp)
+    # print("\n")
+    # print("\n")
+    # print("deviceprofile_resp:", deviceprofile_resp)
+    # print("\n")
+    # print("\n")
+    # print("act_resp:", act_resp)
+    # print("\n")
+    # print("\n")
+    # print("key_resp:", key_resp)
+    # print("\n")
+    # print("\n")
+    # print("lorawan_version:", deviceprofile_resp.device_profile.mac_version)
+
+if __name__ == "__main__":
+    main()

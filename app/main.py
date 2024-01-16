@@ -96,58 +96,6 @@ def main():
         format="%(asctime)s %(message)s",
         datefmt="%Y/%m/%d %H:%M:%S",
     )
-
-    #configure chirpstack client
-    chirpstack_client = ChirpstackClient(args)
-
-    test_eui = "2959df8baf3c667f"
-    test_profile = "e7d0c6c3-0a68-4ae6-aa00-1e3c49918bce"
-    mfr_eui = "98208e0000032a15"
-    mfr_profile = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
-
-    device_resp = chirpstack_client.get_device(mfr_eui)
-    deviceprofile_resp = chirpstack_client.get_device_profile(mfr_profile)
-    act_resp = chirpstack_client.get_device_activation(mfr_eui)
-    key_resp = chirpstack_client.get_device_app_key(mfr_eui,deviceprofile_resp.device_profile.mac_version)
-
-
-    # print("device_resp:", device_resp)
-    # print("\n")
-    # print("\n")
-    print("deviceprofile_resp:", deviceprofile_resp)
-    print("\n")
-    print("\n")
-    # print("act_resp:", act_resp)
-    # print("\n")
-    # print("\n")
-    # print("key_resp:", key_resp)
-    print("\n")
-    print("\n")
-    print("lorawan_version:", deviceprofile_resp.device_profile.mac_version)
-
-    # tenant_resp = chirpstack_client.list_tenants()
-
-    # app_resp = chirpstack_client.list_all_apps(tenant_resp)
-
-    # resp = chirpstack_client.list_all_devices(app_resp)
-
-    # for device in resp:
-    #     # Calculate the total seconds with nanoseconds
-    #     total_seconds = device.last_seen_at.seconds + device.last_seen_at.nanos / 1e9
-    #     # Convert seconds since epoch to a datetime object
-    #     datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds)
-    #     # Format the datetime object as a string
-    #     formatted_date = datetime_obj_utc.strftime('%Y-%m-%d %H:%M:%S')
-
-    #     print("Device ID:", device.dev_eui)
-    #     print("Device Name:", device.name)
-    #     print("Last seen at:", formatted_date) 
-    #     print("Device App Keys:",chirpstack_client.get_device_app_key(device.dev_eui))
-    #     print("Device Activation:",chirpstack_client.get_device_activation(device.dev_eui))
-    #     print(device.device_status)
-    #     print("\n")
-
-    #     print(chirpstack_client.get_device_profile(device.device_profile_id))
         
     #TODO: uncomment once everything is ready to be ran in a pod and configure tracker
     # #configure mqtt client
