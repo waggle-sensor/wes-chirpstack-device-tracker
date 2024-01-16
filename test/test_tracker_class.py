@@ -23,58 +23,59 @@ def Mock_gd_ret_val():
     """
     Mock ChirpstackClient.get_device() return value
     """
-    gd_ret_val = MagicMock()
-    gd_ret_val.device = MagicMock()
-    gd_ret_val.device.dev_eui = "9821230120031b00"
-    gd_ret_val.device.name = "MFR Node"
-    gd_ret_val.device.application_id = "ac81e18b-1925-47f9-839a-27d999a8af55"
-    gd_ret_val.device.device_profile_id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
-    gd_ret_val.created_at = MagicMock()
-    gd_ret_val.created_at.seconds = 1695922619
-    gd_ret_val.created_at.nanos = 943604000
-    gd_ret_val.updated_at = MagicMock()
-    gd_ret_val.updated_at.seconds = 1695923278
-    gd_ret_val.updated_at.nanos = 943604000
-    gd_ret_val.last_seen_at = MagicMock()
-    gd_ret_val.last_seen_at.seconds = 1700675528
-    gd_ret_val.last_seen_at.nanos = 993262000
-    gd_ret_val.device_status = MagicMock()
-    gd_ret_val.device_status.margin = 11
-    gd_ret_val.device_status.external_power_source = True
-    gd_ret_val.device_status.battery_level = -1
+    val = MagicMock()
+    val.device = MagicMock()
+    val.device.dev_eui = "9821230120031b00"
+    val.device.name = "MFR Node"
+    val.device.application_id = "ac81e18b-1925-47f9-839a-27d999a8af55"
+    val.device.device_profile_id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
+    val.created_at = MagicMock()
+    val.created_at.seconds = 1695922619
+    val.created_at.nanos = 943604000
+    val.updated_at = MagicMock()
+    val.updated_at.seconds = 1695923278
+    val.updated_at.nanos = 943604000
+    val.last_seen_at = MagicMock()
+    val.last_seen_at.seconds = 1700675528
+    val.last_seen_at.nanos = 993262000
+    val.device_status = MagicMock()
+    val.device_status.margin = 11
+    val.device_status.external_power_source = True
+    val.device_status.battery_level = -1
 
-    return gd_ret_val
+    return val
 
 def Mock_gdp_ret_val():
     """
     Mock ChirpstackClient.get_device_profile() return value
     """
-    gdp_ret_val = MagicMock()
-    gdp_ret_val.device_profile = MagicMock()
-    gdp_ret_val.device_profile.id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
-    gdp_ret_val.device_profile.tenant_id = "52f14cd4-c6f1-4fbd-8f87-4025e1d49242"
-    gdp_ret_val.device_profile.name = "MFR Node Profile"
-    gdp_ret_val.device_profile.region = 2 #2 = US915
-    gdp_ret_val.device_profile.mac_version = 2 #2 = LORAWAN_1_0_2
-    gdp_ret_val.device_profile.reg_params_revision = 1 #1 = B
-    gdp_ret_val.device_profile.adr_algorithm_id = "default"
-    gdp_ret_val.device_profile.payload_codec_runtime = 1 #1 = JS
-    gdp_ret_val.device_profile.payload_codec_script = "var=example\nreturn var;"
-    gdp_ret_val.device_profile.flush_queue_on_activate = True
-    gdp_ret_val.device_profile.uplink_interval = 1020
-    gdp_ret_val.device_profile.device_status_req_interval = 10
-    gdp_ret_val.device_profile.supports_otaa = True
-    gdp_ret_val.device_profile.supports_otaa = True
-    gdp_ret_val.device_profile.measurements = None
-    gdp_ret_val.device_profile.auto_detect_measurements = True
-    gdp_ret_val.created_at = MagicMock()
-    gdp_ret_val.created_at.seconds = 1694716861
-    gdp_ret_val.created_at.nanos = 633915000
-    gdp_ret_val.updated_at = MagicMock()
-    gdp_ret_val.updated_at.seconds = 1704991331
-    gdp_ret_val.updated_at.nanos = 511071000
+    val = MagicMock()
+    val.device_profile = MagicMock()
+    val.device_profile.id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d8"
+    val.device_profile.tenant_id = "52f14cd4-c6f1-4fbd-8f87-4025e1d49242"
+    val.device_profile.name = "MFR Node Profile"
+    val.device_profile.region = 2 #2 = US915
+    val.device_profile.mac_version = 2 #2 = LORAWAN_1_0_2
+    val.device_profile.reg_params_revision = 1 #1 = B
+    val.device_profile.adr_algorithm_id = "default"
+    val.device_profile.payload_codec_runtime = 1 #1 = JS
+    val.device_profile.payload_codec_script = "var=example\nreturn var;"
+    val.device_profile.flush_queue_on_activate = True
+    val.device_profile.uplink_interval = 1020
+    val.device_profile.device_status_req_interval = 10
+    val.device_profile.supports_otaa = True
+    val.device_profile.supports_otaa = True
+    val.device_profile.measurements = None
+    val.device_profile.auto_detect_measurements = True
+    val.created_at = MagicMock()
+    val.created_at.seconds = 1694716861
+    val.created_at.nanos = 633915000
+    val.updated_at = MagicMock()
+    val.updated_at.seconds = 1704991331
+    val.updated_at.nanos = 511071000
 
-    return gdp_ret_val
+    return val
+
 
 class TestUpdateLd(unittest.TestCase):
 
@@ -426,3 +427,26 @@ class TestCreateLc(unittest.TestCase):
             self.assertIn("Tracker.create_lc(): d_client.create_lc() did not return a response", log.output[2])
             mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=data)
             self.assertIsNone(lc_uid)
+
+class TestUpdateLk(unittest.TestCase):
+
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def setUp(self, mock_insecure_channel):
+        self.args = Mock(
+            api_interface=API_INTERFACE,
+            lorawanconnection_router=LC_ROUTER,
+            lorawankey_router=LK_ROUTER,
+            lorawandevice_router=LD_ROUTER,
+            sensorhardware_router=SH_ROUTER,
+            vsn=VSN,
+            node_token=NODE_TOKEN,
+            chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
+            chirpstack_account_email=CHIRPSTACK_ACT_EMAIL,
+            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD
+        )
+        #set up tracker
+        self.tracker = Tracker(self.args)
+        #mock ChirpstackClient.get_device_activation() return value
+        self.gda_ret_val = Mock_gda_ret_val()
+        #mock ChirpstackClient.get_device_profile() return value
+        self.gdp_ret_val = Mock_gdp_ret_val()
