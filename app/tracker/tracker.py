@@ -1,4 +1,5 @@
 import datetime
+import pytz
 import logging
 from argparse import Namespace
 from app.chirpstack_client import ChirpstackClient
@@ -297,3 +298,16 @@ class Tracker(MqttClient):
         total_seconds = sec + nanos / 1e9 # Calculate the total seconds with nanoseconds 
         datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds) # Convert seconds since epoch to a datetime object
         return datetime_obj_utc
+
+    @staticmethod
+    def UTC_to_Timezone(datetime_obj_utc: datetime ,timezone: str) -> datetime:
+        """
+        Convert UTC to a datetime object in the timezone
+        datetime_obj_utc: datetime object in utc
+        timezone: str acceptable by pytz.timezone()
+        """
+        timezone_obj = pytz.timezone(timezone)
+        # Convert UTC datetime to timezone
+        datetime_obj = datetime_obj_utc.replace(tzinfo=pytz.utc).astimezone(timezone_obj)
+
+        return datetime_obj
