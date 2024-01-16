@@ -64,7 +64,6 @@ def Mock_gdp_ret_val():
     val.device_profile.uplink_interval = 1020
     val.device_profile.device_status_req_interval = 10
     val.device_profile.supports_otaa = True
-    val.device_profile.supports_otaa = True
     val.device_profile.measurements = None
     val.device_profile.auto_detect_measurements = True
     val.created_at = MagicMock()
@@ -93,7 +92,25 @@ def Mock_gda_ret_val():
     val.device_activation.a_f_cnt_down = 10
 
     return val
-    
+
+def Mock_gdak_ret_val():
+    """
+    Mock ChirpstackClient.get_device_app_key() return value
+    """
+    val = MagicMock()
+    val.device_keys = MagicMock()
+    val.device_keys.dev_eui = "9821230120031b00"
+    val.device_keys.nwk_key = "7e19d51b647b123dd123c484707aadc1"
+    val.device_keys.app_key = "00000000000000000000000000000000"
+    val.created_at = MagicMock()
+    val.created_at.seconds = 1689015468
+    val.created_at.nanos = 197740000
+    val.updated_at = MagicMock()
+    val.updated_at.seconds = 1700603333
+    val.updated_at.nanos = 648973000
+
+    return val
+
 class TestUpdateLd(unittest.TestCase):
 
     @patch('app.chirpstack_client.grpc.insecure_channel')
@@ -142,7 +159,7 @@ class TestUpdateLd(unittest.TestCase):
         # Call the action in testing
         self.tracker.update_ld(mock_dev_eui, device_resp)
 
-        #update data that should have been used
+        #data that should have been used
         data = {
             "name": replace_spaces(self.gd_ret_val.device.name),
             "battery_level": self.gd_ret_val.device_status.battery_level
@@ -202,7 +219,7 @@ class TestCreateLd(unittest.TestCase):
         # Call the action in testing
         self.tracker.create_ld(mock_dev_eui, mock_sh_id, device_resp)
 
-        #create data that should have been used
+        #data that should have been used
         data = {
             "name": replace_spaces(self.gd_ret_val.device.name),
             "battery_level": self.gd_ret_val.device_status.battery_level,
@@ -275,7 +292,7 @@ class TestUpdateLc(unittest.TestCase):
         # Call the action in testing
         self.tracker.update_lc(mock_dev_eui, device_resp, deviceprofile_resp)
 
-        #update data that should have been used
+        #data that should have been used
         datetime_obj_utc = self.tracker.epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
             self.gd_ret_val.last_seen_at.nanos
@@ -355,7 +372,7 @@ class TestCreateLc(unittest.TestCase):
         # Call the action in testing
         lc_uid = self.tracker.create_lc(mock_dev_eui, device_resp, deviceprofile_resp)
 
-        #create data that should have been used
+        #data that should have been used
         datetime_obj_utc = self.tracker.epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
             self.gd_ret_val.last_seen_at.nanos
@@ -463,7 +480,62 @@ class TestUpdateLk(unittest.TestCase):
         )
         #set up tracker
         self.tracker = Tracker(self.args)
-        #mock ChirpstackClient.get_device_activation() return value
+        #mock ChirpstackClient method return values
         self.gda_ret_val = Mock_gda_ret_val()
-        #mock ChirpstackClient.get_device_profile() return value
         self.gdp_ret_val = Mock_gdp_ret_val()
+        self.gdak_ret_val = Mock_gdak_ret_val()
+
+    @patch("app.django_client.HttpMethod.PATCH")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_update_lk_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
+        """
+        Successfully use chirpstack lorawan device activation and device profile data 
+        to call DjangoClient.update_lk()
+        """
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        # Mock return values
+        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call chirpstack_client get_device
+        act_resp = chirpstack_client.get_device_activation(mock_dev_eui)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        data = {
+            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key, 
+            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
+            "dev_address": self.gda_ret_val.device_activation.dev_addr
+        }
+        if con_type == "OTAA":
+            lw_v = self.gdp_ret_val.device_profile.mac_version
+            key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
+            data["app_key"] = key_resp
+
+        # Call the action in testing
+        self.tracker.update_lk(mock_dev_eui, act_resp, deviceprofile_resp)
+
+        # Assertions
+        mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
