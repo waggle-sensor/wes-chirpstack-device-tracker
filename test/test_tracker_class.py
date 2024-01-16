@@ -5,6 +5,7 @@ from app.chirpstack_client import ChirpstackClient
 from app.django_client import DjangoClient, HttpMethod
 from app.tracker import Tracker
 from app.tracker.parse import *
+from app.tracker.convert_date import *
 
 API_INTERFACE = "https://auth.sagecontinuum.org"
 LC_ROUTER = "lorawanconnections/"
@@ -16,8 +17,6 @@ NODE_TOKEN = "999294cef6fc3a95fe14c145612825ef5ae27567"
 CHIRPSTACK_API_INTERFACE = "wes-chirpstack-server:8080"
 CHIRPSTACK_ACT_EMAIL = "test"
 CHIRPSTACK_ACT_PASSWORD = "test"
-
-#TODO: add a test for Tracker.epoch_to_UTC()
 
 def Mock_gd_ret_val():
     """
@@ -292,7 +291,7 @@ class TestUpdateLc(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        datetime_obj_utc = self.tracker.epoch_to_UTC(
+        datetime_obj_utc = epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
             self.gd_ret_val.last_seen_at.nanos
         )        
@@ -372,7 +371,7 @@ class TestCreateLc(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        datetime_obj_utc = self.tracker.epoch_to_UTC(
+        datetime_obj_utc = epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
             self.gd_ret_val.last_seen_at.nanos
         )        
@@ -436,7 +435,7 @@ class TestCreateLc(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        datetime_obj_utc = self.tracker.epoch_to_UTC(
+        datetime_obj_utc = epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
             self.gd_ret_val.last_seen_at.nanos
         )        
