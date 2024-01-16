@@ -215,7 +215,7 @@ class Tracker(MqttClient):
             lw_v = deviceprofile_resp.device_profile.mac_version
             key_resp = self.c_client.get_device_app_key(deveui,lw_v)
             lk_data["app_key"] = key_resp
-        self.d_client.update_lk(deveui, lk_data)
+        self.d_client.create_lk(lk_data)
 
         return
 
