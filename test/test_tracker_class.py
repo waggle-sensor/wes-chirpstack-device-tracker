@@ -729,3 +729,133 @@ class TestCreateLk(unittest.TestCase):
 
         # Assertions
         mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=data)
+
+class TestCreateSh(unittest.TestCase):
+
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def setUp(self, mock_insecure_channel):
+        self.args = Mock(
+            api_interface=API_INTERFACE,
+            lorawanconnection_router=LC_ROUTER,
+            lorawankey_router=LK_ROUTER,
+            lorawandevice_router=LD_ROUTER,
+            sensorhardware_router=SH_ROUTER,
+            vsn=VSN,
+            node_token=NODE_TOKEN,
+            chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
+            chirpstack_account_email=CHIRPSTACK_ACT_EMAIL,
+            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD
+        )
+        #set up tracker
+        self.tracker = Tracker(self.args)
+        #mock ChirpstackClient method return values
+        self.gdp_ret_val = Mock_gdp_ret_val()
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_create_sh_happy_path(self, mock_insecure_channel, mock_device_profile_service_stub, mock_django_post):
+        """
+        Successfully use chirpstack lorawan device profile data 
+        to call DjangoClient.create_sh()
+        """
+        #mock response of requests.post method
+        headers = {
+            'Content-Type': 'application/json', 
+            'status-code': 201,
+            'Custom-Header': 'Mocked-Value',
+        }
+        response_data = {
+            "id": 1,
+            "hardware": self.gdp_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
+            "description": self.gdp_ret_val.device_profile.description,
+            "capabilities": [35]
+            }
+        mock_response = Mock()
+        mock_response.headers = headers
+        mock_response.json.return_value = response_data
+        mock_django_post.return_value = mock_response
+
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        # Mock return val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        data = {
+            "hardware": self.gdp_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
+            "description": self.gdp_ret_val.device_profile.description,
+            "capabilities": [35]
+        }
+
+        # Call the action in testing
+        sh_uid = self.tracker.create_sh(deviceprofile_resp)
+
+        # Assertions
+        mock_django_post.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.tracker.d_client.auth_header, json=data)
+        self.assertEqual(sh_uid, response_data["id"])
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_create_sh_no_response(self, mock_insecure_channel, mock_device_profile_service_stub, mock_django_post):
+        """
+        Test when DjangoClient.create_sh() returns an error
+        """
+        #mock response of requests.post method
+        mock_response = Mock()
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")
+        mock_django_post.return_value = mock_response
+
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        # Mock return val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        data = {
+            "hardware": self.gdp_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
+            "description": self.gdp_ret_val.device_profile.description,
+            "capabilities": [35]
+        }
+
+        # Assertions
+        with self.assertLogs(level='ERROR') as log:            
+            # Call the action in testing
+            sh_uid = self.tracker.create_sh(deviceprofile_resp)
+
+            # Assert
+            self.assertEqual(len(log.output), 3)
+            self.assertEqual(len(log.records), 3)
+            self.assertIn("Tracker.create_sh(): d_client.create_sh() did not return a response", log.output[2])
+            mock_django_post.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.tracker.d_client.auth_header, json=data)
+            self.assertIsNone(sh_uid)
