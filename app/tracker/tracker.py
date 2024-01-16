@@ -1,5 +1,3 @@
-import datetime
-import pytz
 import logging
 from argparse import Namespace
 from app.chirpstack_client import ChirpstackClient
@@ -7,6 +5,7 @@ from app.django_client import DjangoClient
 from app.mqtt_client import MqttClient
 from app.manifest import Manifest
 from .parse import *
+from .convert_date import *
 
 class Tracker(MqttClient):
     """
@@ -126,7 +125,7 @@ class Tracker(MqttClient):
         deviceprofile_resp: the output of chirpstack client's get_device_profile()
         """   
         dev_name = replace_spaces(device_resp.device.name)
-        datetime_obj_utc = self.epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
+        datetime_obj_utc = epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         margin = device_resp.device_status.margin
         expected_uplink = deviceprofile_resp.device_profile.uplink_interval
@@ -150,7 +149,7 @@ class Tracker(MqttClient):
         deviceprofile_resp: the output of chirpstack client's get_device_profile()
         """
         dev_name = replace_spaces(device_resp.device.name)
-        datetime_obj_utc = self.epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
+        datetime_obj_utc = epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         margin = device_resp.device_status.margin
         expected_uplink = deviceprofile_resp.device_profile.uplink_interval
@@ -251,7 +250,7 @@ class Tracker(MqttClient):
         device_resp: the output of chirpstack client's get_device()
         deviceprofile_resp: the output of chirpstack client's get_device_profile()
         """
-        datetime_obj_utc = self.epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
+        datetime_obj_utc = epoch_to_UTC(device_resp.last_seen_at.seconds, device_resp.last_seen_at.nanos)        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         margin = device_resp.device_status.margin
         expected_uplink = deviceprofile_resp.device_profile.uplink_interval
@@ -288,26 +287,3 @@ class Tracker(MqttClient):
 
         manifest.update_manifest(manifest_data)
         return
-
-    @staticmethod
-    def epoch_to_UTC(sec: int, nanos: int) -> datetime:
-        """
-        Convert seconds since epoch to a UTC datetime object
-        """
-        #TODO: check if this converts the date correctly
-        total_seconds = sec + nanos / 1e9 # Calculate the total seconds with nanoseconds 
-        datetime_obj_utc = datetime.datetime.utcfromtimestamp(total_seconds) # Convert seconds since epoch to a datetime object
-        return datetime_obj_utc
-
-    @staticmethod
-    def UTC_to_Timezone(datetime_obj_utc: datetime ,timezone: str) -> datetime:
-        """
-        Convert UTC to a datetime object in the timezone
-        datetime_obj_utc: datetime object in utc
-        timezone: str acceptable by pytz.timezone()
-        """
-        timezone_obj = pytz.timezone(timezone)
-        # Convert UTC datetime to timezone
-        datetime_obj = datetime_obj_utc.replace(tzinfo=pytz.utc).astimezone(timezone_obj)
-
-        return datetime_obj
