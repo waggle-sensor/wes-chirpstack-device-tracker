@@ -194,7 +194,7 @@ class TestCreateLd(unittest.TestCase):
         # Assertions
         mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/", headers=self.tracker.d_client.auth_header, json=data)
 
-class TestCreateLc(unittest.TestCase):
+class TestUpdateLc(unittest.TestCase):
 
     @patch('app.chirpstack_client.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
