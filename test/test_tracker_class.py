@@ -145,6 +145,7 @@ class TestUpdateLd(unittest.TestCase):
 
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
+        #mock return val
         mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
 
         # Create a ChirpstackClient instance
@@ -156,14 +157,14 @@ class TestUpdateLd(unittest.TestCase):
         # Call chirpstack_client get_device
         device_resp = chirpstack_client.get_device(mock_dev_eui)
 
-        # Call the action in testing
-        self.tracker.update_ld(mock_dev_eui, device_resp)
-
         #data that should have been used
         data = {
             "name": replace_spaces(self.gd_ret_val.device.name),
             "battery_level": self.gd_ret_val.device_status.battery_level
         }
+
+        # Call the action in testing
+        self.tracker.update_ld(mock_dev_eui, device_resp)
 
         # Assertions
         mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
@@ -200,8 +201,9 @@ class TestCreateLd(unittest.TestCase):
         mock_channel = Mock()
         mock_insecure_channel.return_value = mock_channel
 
-        # Mock the DeviceServiceStub
+        # Mock DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
+        #mock return val
         mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
 
         # Create a ChirpstackClient instance
@@ -216,9 +218,6 @@ class TestCreateLd(unittest.TestCase):
         # Mock sensor hardware id in django
         mock_sh_id = "mock_sh_id"
 
-        # Call the action in testing
-        self.tracker.create_ld(mock_dev_eui, mock_sh_id, device_resp)
-
         #data that should have been used
         data = {
             "name": replace_spaces(self.gd_ret_val.device.name),
@@ -226,6 +225,9 @@ class TestCreateLd(unittest.TestCase):
             "hardware": mock_sh_id,
             "deveui": mock_dev_eui
         }
+
+        # Call the action in testing
+        self.tracker.create_ld(mock_dev_eui, mock_sh_id, device_resp)
 
         # Assertions
         mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawandevices/", headers=self.tracker.d_client.auth_header, json=data)
@@ -266,12 +268,12 @@ class TestUpdateLc(unittest.TestCase):
         mock_channel = Mock()
         mock_insecure_channel.return_value = mock_channel
 
-        # Mock the DeviceServiceStub
+        # Mock stubs
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-
-        # Mock the DeviceProfileServiceStub
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        #mock return vals
+        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
         mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
 
         # Create a ChirpstackClient instance
@@ -289,9 +291,6 @@ class TestUpdateLc(unittest.TestCase):
         # Call get_device_profile
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
-        # Call the action in testing
-        self.tracker.update_lc(mock_dev_eui, device_resp, deviceprofile_resp)
-
         #data that should have been used
         datetime_obj_utc = self.tracker.epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
@@ -306,6 +305,9 @@ class TestUpdateLc(unittest.TestCase):
             "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
             "connection_type": con_type
         }
+
+        # Call the action in testing
+        self.tracker.update_lc(mock_dev_eui, device_resp, deviceprofile_resp)
 
         # Assertions
         mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
@@ -346,12 +348,12 @@ class TestCreateLc(unittest.TestCase):
         mock_channel = Mock()
         mock_insecure_channel.return_value = mock_channel
 
-        # Mock the DeviceServiceStub
+        # Mock stubs
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-
-        # Mock the DeviceProfileServiceStub
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        #mock return vals
+        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
         mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
 
         # Create a ChirpstackClient instance
@@ -369,9 +371,6 @@ class TestCreateLc(unittest.TestCase):
         # Call get_device_profile
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
-        # Call the action in testing
-        lc_uid = self.tracker.create_lc(mock_dev_eui, device_resp, deviceprofile_resp)
-
         #data that should have been used
         datetime_obj_utc = self.tracker.epoch_to_UTC(
             self.gd_ret_val.last_seen_at.seconds, 
@@ -388,6 +387,9 @@ class TestCreateLc(unittest.TestCase):
             "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
             "connection_type": con_type
         }
+
+        # Call the action in testing
+        lc_uid = self.tracker.create_lc(mock_dev_eui, device_resp, deviceprofile_resp)
 
         # Assertions
         mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=data)
@@ -410,12 +412,12 @@ class TestCreateLc(unittest.TestCase):
         mock_channel = Mock()
         mock_insecure_channel.return_value = mock_channel
 
-        # Mock the DeviceServiceStub
+        # Mock stubs
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-
-        # Mock the DeviceProfileServiceStub
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        
+        #mock return vals
+        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
         mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
 
         # Create a ChirpstackClient instance
