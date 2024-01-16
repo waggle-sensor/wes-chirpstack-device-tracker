@@ -3,7 +3,7 @@ import requests
 from unittest.mock import Mock, patch, MagicMock
 from app.django_client import DjangoClient, HttpMethod
 
-DEV_EUI = 123456789
+DEV_EUI = "123456789"
 API_INTERFACE = "https://auth.sagecontinuum.org"
 LC_ROUTER = "lorawanconnections/"
 LK_ROUTER = "lorawankeys/"
