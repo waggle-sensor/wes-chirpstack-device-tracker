@@ -491,10 +491,10 @@ class TestUpdateLk(unittest.TestCase):
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
-    def test_update_lk_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
+    def test_update_lk_otaa_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
         """
         Successfully use chirpstack lorawan device activation and device profile data 
-        to call DjangoClient.update_lk()
+        to call DjangoClient.update_lk() when the device is using OTAA
         """
         # Mock the gRPC channel
         mock_channel = Mock()
@@ -525,19 +525,207 @@ class TestUpdateLk(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        lw_v = self.gdp_ret_val.device_profile.mac_version
+        key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
         data = {
             "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key, 
             "app_session_key": self.gda_ret_val.device_activation.app_s_key,
-            "dev_address": self.gda_ret_val.device_activation.dev_addr
+            "dev_address": self.gda_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
         }
-        if con_type == "OTAA":
-            lw_v = self.gdp_ret_val.device_profile.mac_version
-            key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
-            data["app_key"] = key_resp
 
         # Call the action in testing
         self.tracker.update_lk(mock_dev_eui, act_resp, deviceprofile_resp)
 
         # Assertions
         mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
+
+    @patch("app.django_client.HttpMethod.PATCH")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_update_lk_abp_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
+        """
+        Successfully use chirpstack lorawan device activation and device profile data 
+        to call DjangoClient.update_lk() when the device is using ABP
+        """
+        #change to ABP
+        self.gdp_ret_val.device_profile.supports_otaa = False
+
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        # Mock return values
+        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call chirpstack_client get_device
+        act_resp = chirpstack_client.get_device_activation(mock_dev_eui)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        lw_v = self.gdp_ret_val.device_profile.mac_version
+        key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
+        data = {
+            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key, 
+            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
+            "dev_address": self.gda_ret_val.device_activation.dev_addr
+        }
+
+        # Call the action in testing
+        self.tracker.update_lk(mock_dev_eui, act_resp, deviceprofile_resp)
+
+        # Assertions
+        mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
+
+class TestCreateLk(unittest.TestCase):
+
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def setUp(self, mock_insecure_channel):
+        self.args = Mock(
+            api_interface=API_INTERFACE,
+            lorawanconnection_router=LC_ROUTER,
+            lorawankey_router=LK_ROUTER,
+            lorawandevice_router=LD_ROUTER,
+            sensorhardware_router=SH_ROUTER,
+            vsn=VSN,
+            node_token=NODE_TOKEN,
+            chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
+            chirpstack_account_email=CHIRPSTACK_ACT_EMAIL,
+            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD
+        )
+        #set up tracker
+        self.tracker = Tracker(self.args)
+        #mock ChirpstackClient method return values
+        self.gda_ret_val = Mock_gda_ret_val()
+        self.gdp_ret_val = Mock_gdp_ret_val()
+        self.gdak_ret_val = Mock_gdak_ret_val()
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_create_lk_otaa_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
+        """
+        Successfully use chirpstack lorawan device activation and device profile data 
+        to call DjangoClient.create_lk() when the device is using OTAA
+        """
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        # Mock return values
+        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call chirpstack_client get_device
+        act_resp = chirpstack_client.get_device_activation(mock_dev_eui)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        mock_lc_str = "mock_lc_uid"
+        lw_v = self.gdp_ret_val.device_profile.mac_version
+        key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
+        data = {
+            "lorawan_connection": mock_lc_str,
+            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
+            "dev_address": self.gda_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
+        }
+
+        # Call the action in testing
+        self.tracker.create_lk(mock_dev_eui, mock_lc_str, act_resp, deviceprofile_resp)
+
+        # Assertions
+        mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=data)
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    def test_create_lk_abp_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
+        """
+        Successfully use chirpstack lorawan device activation and device profile data 
+        to call DjangoClient.create_lk() when the device is using ABP
+        """
+        #change to ABP
+        self.gdp_ret_val.device_profile.supports_otaa = False
+
+        # Mock the gRPC channel
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock stubs
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+
+        # Mock return values
+        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+
+        # Create a ChirpstackClient instance
+        chirpstack_client = ChirpstackClient(self.args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Call chirpstack_client get_device
+        act_resp = chirpstack_client.get_device_activation(mock_dev_eui)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Call get_device_profile
+        deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
+
+        #data that should have been used
+        mock_lc_str = "mock_lc_uid"
+        lw_v = self.gdp_ret_val.device_profile.mac_version
+        key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
+        data = {
+            "lorawan_connection": mock_lc_str,
+            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
+            "dev_address": self.gda_ret_val.device_activation.dev_addr
+        }
+
+        # Call the action in testing
+        self.tracker.create_lk(mock_dev_eui, mock_lc_str, act_resp, deviceprofile_resp)
+
+        # Assertions
+        mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=data)
