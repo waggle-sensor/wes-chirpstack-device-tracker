@@ -143,7 +143,8 @@ class Tracker(MqttClient):
 
     def create_lc(self, deveui: str, device_resp: dict, deviceprofile_resp: dict) -> str:
         """
-        Create a lorawan connection using mqtt message, chirpstack client, and django client
+        Create a lorawan connection using mqtt message, chirpstack client, and django client.
+        Returns the lorawan connection uid in django.
         device_resp: the output of chirpstack client's get_device()
         deviceprofile_resp: the output of chirpstack client's get_device_profile()
         """
