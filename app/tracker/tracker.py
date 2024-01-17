@@ -82,7 +82,7 @@ class Tracker(MqttClient):
             self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
 
         #update manifest
-        self.update_manifest(deviceInfo["devEui"], manifest_dev_exist, manifest, device_resp, deviceprofile_resp)
+        self.update_manifest(deviceInfo["devEui"], manifest, device_resp, deviceprofile_resp)
         return
     
     def update_ld(self, deveui: str, device_resp: dict):
@@ -242,7 +242,7 @@ class Tracker(MqttClient):
             logging.error("Tracker.create_sh(): d_client.create_sh() did not return a response")
             return None
 
-    def update_manifest(self, deveui: str, dev_exist:bool, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):
+    def update_manifest(self, deveui: str, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):
         """
         Update manifest using mqtt message, chirpstack client, django client, and manifest
         dev_exist: boolean that tells if device exist in manifest
@@ -271,7 +271,7 @@ class Tracker(MqttClient):
         }
         #include hardware in manifest_data when the device is not in manifest
         #TODO: consider using Tanuki to fill out fields like description, manufacturer, etc. in sensor hardware
-        if not dev_exist:
+        if not manifest.ld_search(deveui):
             #Sensor hardware data is always coming from chirpstack client, so if django has updated
             #   sensor hardware data the manifest will not show it until update-stack.sh runs
             hardware = deviceprofile_resp.device_profile.name
@@ -281,8 +281,8 @@ class Tracker(MqttClient):
             manifest_data["lorawandevice"]["hardware"] = {
                 "hardware": hardware,
                 "hw_model": hw_model,
-                "description": description,
-                "capabilities": capabilities
+                "capabilities": capabilities,
+                "description": description
         }
 
         manifest.update_manifest(manifest_data)
