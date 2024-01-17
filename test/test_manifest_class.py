@@ -1,7 +1,8 @@
 import unittest
 import json
+import copy
 from app.manifest import Manifest
-from manifest_sample import MANIFEST
+from manifest_sample import ManifestTemplate
 from unittest.mock import (
     Mock, 
     patch, 
@@ -653,7 +654,7 @@ class TestUpdateManifest(unittest.TestCase):
     def setUp(self):
         self.filepath = MANIFEST_FILEPATH
         self.manifest = Manifest(self.filepath)
-        self.manifest.dict = MANIFEST
+        self.manifest.dict = ManifestTemplate().sample
 
     def test_update_manifest_happy_path(self):
         """
