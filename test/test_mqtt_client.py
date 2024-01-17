@@ -3,7 +3,9 @@ from unittest.mock import Mock, patch, MagicMock
 from app.mqtt_client import *
 import paho.mqtt.client as mqtt
 from collections import namedtuple
-from msg_sample import MESSAGE #TODO: add more sample data in txt/csv file
+from msg_sample import MessageTemplate
+
+MESSAGE = MessageTemplate().sample
 
 class TestConfigureClient(unittest.TestCase):
 
