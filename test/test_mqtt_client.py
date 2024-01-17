@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch, MagicMock
 from app.mqtt_client import *
 import paho.mqtt.client as mqtt
 from collections import namedtuple
-from msg_sample import MessageTemplate
+from tools.chirpstack import MessageTemplate
 
 MESSAGE = MessageTemplate().sample
 

@@ -2,7 +2,7 @@ import unittest
 import json
 import copy
 from app.manifest import Manifest
-from manifest_sample import ManifestTemplate
+from tools.manifest import ManifestTemplate
 from unittest.mock import (
     Mock, 
     patch, 

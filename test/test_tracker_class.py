@@ -8,7 +8,7 @@ from app.tracker import Tracker
 from app.tracker.parse import *
 from app.tracker.convert_date import *
 from app.manifest import Manifest
-from manifest_sample import ManifestTemplate
+from tools.manifest import ManifestTemplate
 
 API_INTERFACE = "https://auth.sagecontinuum.org"
 LC_ROUTER = "lorawanconnections/"
