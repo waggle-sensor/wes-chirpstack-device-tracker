@@ -66,7 +66,8 @@ class MqttClient:
 
     def on_message(self, client, userdata, message):
         """
-        Method to run when message is received
+        Method to run when message is received. This method runs 
+        in the same thread as the MQTT client's network loop
         """
         #log message if debug flag was passed
         self.log_message(message) if self.args.debug else None

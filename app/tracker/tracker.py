@@ -16,10 +16,9 @@ class Tracker(MqttClient):
         self.c_client = ChirpstackClient(args)
         self.d_client = DjangoClient(args)
 
+    #if execution of this method slows down mqtt client's network loop
+    # consider offloading tasks to seperate thread using 'threading' module
     def on_message(self, client, userdata, message):
-        """
-        Method to run when Mqtt message is received
-        """
         #log message if debug flag was passed
         self.log_message(message) if self.args.debug else None
 
