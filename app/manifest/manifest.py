@@ -100,7 +100,7 @@ class Manifest:
     def check_keys(self, data: dict, structure: dict) -> bool:
         """
         A recursive function that iterates through the keys defined in data 
-        to check if it conforms to manifest structure.
+        to check if it conforms to dict structure.
         If a key is a dict, it recursively checks the nested keys. 
         """
         return all(
@@ -110,7 +110,7 @@ class Manifest:
 
     def is_valid_struc(self, data: dict) -> bool:
         """
-        Checks if the data conforms to manifest structure
+        Checks if the data conforms to manifest structure of lorawan connections
         """
         if self.is_valid_json(data):
             json_data = data
@@ -162,6 +162,20 @@ class Manifest:
             logging.error(f"Manifest.has_requiredKeys(): {e}")
             return False
 
+    #if you need to do more complex merges consider deepmerge
+    def update_dict_rec(self, current: dict, new: dict):
+        """
+        A recursive function that updates values in the dictionary.
+        If a key is a dict, it recursively updates the values in that dictionary.
+        current: current dictionary that will be updated
+        new: new dictionary that will update
+        """
+        for key, val in new.items():
+            if isinstance(new[key], dict):
+                self.update_dict_rec(current[key],new[key])
+            else:
+                current[key] = new[key]
+
     def update_manifest(self, data: dict):
         """
         Update manifest with new lorawan connection data
@@ -183,7 +197,7 @@ class Manifest:
 
         if index_to_update is not None:
             # Update the existing connection
-            existing_lcs[index_to_update].update(new_lc)
+            self.update_dict_rec(existing_lcs[index_to_update], new_lc)
         else:
             # If not found, check for required keys and add the new connection
             if not self.has_requiredKeys(data):
