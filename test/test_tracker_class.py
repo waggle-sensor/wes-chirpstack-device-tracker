@@ -9,6 +9,7 @@ from app.tracker.parse import *
 from app.tracker.convert_date import *
 from app.manifest import Manifest
 from tools.manifest import ManifestTemplate
+from tools.chirpstack import MessageTemplate
 
 API_INTERFACE = "https://auth.sagecontinuum.org"
 LC_ROUTER = "lorawanconnections/"
@@ -21,6 +22,7 @@ CHIRPSTACK_API_INTERFACE = "wes-chirpstack-server:8080"
 CHIRPSTACK_ACT_EMAIL = "test"
 CHIRPSTACK_ACT_PASSWORD = "test"
 MANIFEST_FILEPATH = '/etc/waggle/node-manifest-v2.json'
+MESSAGE = MessageTemplate().sample
 
 def Mock_gd_ret_val():
     """
@@ -878,11 +880,11 @@ class TestUpdateManifest(unittest.TestCase):
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
             chirpstack_account_email=CHIRPSTACK_ACT_EMAIL,
-            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD
+            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD,
+            manifest=MANIFEST_FILEPATH
         )
         #set up manifest
-        self.filepath = MANIFEST_FILEPATH
-        self.manifest = Manifest(self.filepath)
+        self.manifest = Manifest(self.args.manifest)
         self.manifest.dict = ManifestTemplate().sample
         #set up tracker
         self.tracker = Tracker(self.args)
