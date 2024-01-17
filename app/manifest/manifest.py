@@ -178,6 +178,8 @@ class Manifest:
                 self.update_dict_rec(current[key],new[key])
             else:
                 current[key] = new[key]
+        
+        return
 
     def update_manifest(self, data: dict):
         """
