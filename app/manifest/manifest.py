@@ -39,6 +39,9 @@ class Manifest:
             }
         }
 
+    def __str__(self):
+        return f'{self.dict}'
+
     def load_manifest(self) -> dict:
         """
         Return manifest based on filepath
