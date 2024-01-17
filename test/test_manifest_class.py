@@ -661,16 +661,16 @@ class TestUpdateManifest(unittest.TestCase):
         """
         # Arrange
         new_data = {
-            "connection_name": "test",
+            "connection_name": "test", #updated
             "created_at": "2021-12-13T19:47:45.355000Z",
             "last_seen_at": "2021-12-13T19:47:45.355000Z",
-            "margin": 0,
-            "expected_uplink_interval_sec": 0,
-            "connection_type": "ABP",
+            "margin": 0, #updated
+            "expected_uplink_interval_sec": 0, #updated
+            "connection_type": "ABP", #updated
             "lorawandevice": {
                 "deveui": "7d1f5420e81235c1",
-                "name": "test",
-                "battery_level": 0,
+                "name": "test", #updated
+                "battery_level": 0, #updated
                 "hardware": {
                     "hardware": "Sap Flow Meter",
                     "hw_model": "SFM1x",
@@ -696,7 +696,7 @@ class TestUpdateManifest(unittest.TestCase):
         """
         # Arrange
         del self.manifest.dict["lorawanconnections"] #remove lc array
-        new_data = {
+        new_data = { #whole new record
             "connection_name": "test",
             "created_at": "2021-12-13T19:47:45.355000Z",
             "last_seen_at": "2021-12-13T19:47:45.355000Z",
