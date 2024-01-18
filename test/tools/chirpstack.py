@@ -1,4 +1,4 @@
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 class MessageTemplate:
     def __init__(self):
@@ -69,22 +69,22 @@ class Mock_ChirpstackClient_Methods:
         """
         Mock ChirpstackClient.get_device() return value
         """
-        val = MagicMock()
-        val.device = MagicMock()
+        val = Mock()
+        val.device = Mock()
         val.device.dev_eui = self.deveui
         val.device.name = "mock device"
         val.device.application_id = "ac81e18b-1925-47f9-839a-27d999a8af11"
         val.device.device_profile_id = "cf2aec2f-03e1-4a60-a32c-0faeef5730c1"
-        val.created_at = MagicMock()
+        val.created_at = Mock()
         val.created_at.seconds = 1695922619
         val.created_at.nanos = 943604000
-        val.updated_at = MagicMock()
+        val.updated_at = Mock()
         val.updated_at.seconds = 1695923278
         val.updated_at.nanos = 943604000
-        val.last_seen_at = MagicMock()
+        val.last_seen_at = Mock()
         val.last_seen_at.seconds = 1700675528
         val.last_seen_at.nanos = 993262000
-        val.device_status = MagicMock()
+        val.device_status = Mock()
         val.device_status.margin = 11
         val.device_status.external_power_source = True
         val.device_status.battery_level = -1
@@ -126,8 +126,8 @@ class Mock_ChirpstackClient_Methods:
         """
         Mock ChirpstackClient.get_device_activation() return value
         """
-        val = MagicMock()
-        val.device_activation = MagicMock()
+        val = Mock()
+        val.device_activation = Mock()
         val.device_activation.dev_eui = self.deveui
         val.device_activation.dev_addr = "00d65cd1"
         val.device_activation.app_s_key = "6e0f556d5975b872d744aee2c1239d5"
@@ -144,15 +144,15 @@ class Mock_ChirpstackClient_Methods:
         """
         Mock ChirpstackClient.get_device_app_key() return value
         """
-        val = MagicMock()
-        val.device_keys = MagicMock()
+        val = Mock()
+        val.device_keys = Mock()
         val.device_keys.dev_eui = self.deveui
         val.device_keys.nwk_key = "7e19d51b647b123dd123c484707aadc1"
         val.device_keys.app_key = "00000000000000000000000000000000"
-        val.created_at = MagicMock()
+        val.created_at = Mock()
         val.created_at.seconds = 1689015468
         val.created_at.nanos = 197740000
-        val.updated_at = MagicMock()
+        val.updated_at = Mock()
         val.updated_at.seconds = 1700603333
         val.updated_at.nanos = 648973000
 
