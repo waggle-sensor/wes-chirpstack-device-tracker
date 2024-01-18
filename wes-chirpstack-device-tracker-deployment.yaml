@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wes-chirpstack-device-tracker
+  name: wes-chirpstack-tracker
 spec:
   selector:
     matchLabels:
-      app: wes-chirpstack-device-tracker
+      app: wes-chirpstack-tracker
   template:
     metadata:
       labels:
-        app: wes-chirpstack-device-tracker
+        app: wes-chirpstack-tracker
     spec:
       priorityClassName: wes-high-priority
       nodeSelector:
         resource.lorawan: "true"
       containers:
-        - name: wes-chirpstack-device-tracker
-          image: 10.31.81.1:5000/local/wes-chirpstack-device-tracker:latest
+        - name: wes-chirpstack-tracker
+          image: 10.31.81.1:5000/local/wes-chirpstack-tracker:latest
           args: ["--debug"] #remove once deployed
           resources:
             requests:
