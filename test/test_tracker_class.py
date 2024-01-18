@@ -927,3 +927,453 @@ class TestUpdateManifest(unittest.TestCase):
 
         #Assert if manifest dict was updated
         self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == new_data)
+
+class TestOnMessage(unittest.TestCase):
+
+    @patch('app.chirpstack_client.grpc.insecure_channel') #TODO: do i need to moch channel?
+    def setUp(self, mock_insecure_channel):
+        self.args = Mock(
+            api_interface=API_INTERFACE,
+            lorawanconnection_router=LC_ROUTER,
+            lorawankey_router=LK_ROUTER,
+            lorawandevice_router=LD_ROUTER,
+            sensorhardware_router=SH_ROUTER,
+            vsn=VSN,
+            node_token=NODE_TOKEN,
+            chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
+            chirpstack_account_email=CHIRPSTACK_ACT_EMAIL,
+            chirpstack_account_password=CHIRPSTACK_ACT_PASSWORD,
+            manifest=MANIFEST_FILEPATH
+        )
+        #set up manifest
+        self.manifest = Manifest(self.args.manifest)
+        self.manifest.dict = ManifestTemplate().sample
+        #set up tracker
+        self.tracker = Tracker(self.args)
+        #get Chripstack message sample
+        self.MESSAGE = MessageTemplate().sample
+        #mock ChirpstackClient method return values
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
+
+    @patch('app.tracker.Tracker.parse_message')
+    def test_on_message_Value_Error(self, mock_parse_message):
+        """
+        Test on_message() value error when parse_message returns less values to unpack
+        """
+        #Arrange
+        client = Mock()
+        userdata = Mock()
+        ChirpMessage = Mock()
+        ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
+
+
+        #Mock the return value for parse_message
+        mock_parse_message.return_value = ({}, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
+
+
+        # Assert Logs
+        with self.assertLogs(level='ERROR') as log:
+            # Call the log_message method
+            with self.assertRaises(ValueError) as ve:
+                self.tracker.on_message(client, userdata, ChirpMessage)
+                self.assertEqual(len(log.output), 1)
+                self.assertEqual(len(log.records), 1)
+                self.assertIn(f"Tracker.on_message(): Message did not parse correctly, {ve}", log.output[0])
+
+    @patch("app.django_client.HttpMethod.PATCH")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.manifest.Manifest.load_manifest')
+    def test_on_message_dev_exist(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
+        """
+        Test on_message() happy path when device EXIST in the manifest
+        """
+        #Arrange
+        #   mock Manifest.load_manifest()
+        mock_load_manifest.return_value = self.manifest.dict
+        #   change deveui in mocks to one existing in manifest sample
+        deveui = "7d1f5420e81235c1" 
+        self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
+        self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock chirpstack encoded message
+        ChirpMessage = Mock()
+        ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
+        #   mock ChirpstackClient.get_device()
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        #   mock ChirpstackClient.get_device_profile()
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackClient.get_device_activation()
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackCLinet.get_device_app_key()
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+
+        #call the action in testing
+        client = Mock()
+        userdata = Mock()
+        temp = self.tracker.on_message(client, userdata, ChirpMessage)
+
+        #data that should have been used
+        datetime_obj_utc = epoch_to_UTC(
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
+        )        
+        last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
+        key_resp = self.tracker.c_client.get_device_app_key(deveui,lw_v)
+        update_ld_data = {
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level
+        }
+        udpate_lc_data = {
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            'last_seen_at': last_seen_at, 
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type
+        }
+        update_lk_data = {
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key, 
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
+        }
+        update_manifest_data = {
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "created_at": "2023-12-13T19:47:45.355000Z",
+            "last_seen_at": last_seen_at,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type,
+            "lorawandevice": {
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+                "hardware": {
+                    "hardware": "Sap Flow Meter",
+                    "hw_model": "SFM1x",
+                    "hw_version": "",
+                    "sw_version": "",
+                    "manufacturer": "ICT International",
+                    "datasheet": "https://ictinternational.com/manuals-and-brochures/sfm1x-sap-flow-meter/",
+                    "capabilities": ["lorawan"],
+                    "description": "# SFM1x Sap Flow Meter\r\n\r\nThe SFM1x Sap Flow Meter enables individual tree water use and health to be monitored in real time. This is because the SFM has integrated data transmission direct to cloud using IoT/LTE-M Cat-M1. The SFM1x Sap Flow Meter is a discrete standalone instrument based upon the Heat Ratio Method. This measurement principle has proven to be a robust and flexible technique to measure plant water use; being able to measure high, low, zero and reverse flows in a large range of plant anatomies & species from herbaceous to woody, and stem sizes > 10 mm in diameter. The theoretical basis and ratio metric design of the Heat Ratio Method makes possible the measurement of high, low, zero and reverse flows. The SFM1x Sap Flow Meter consists of two temperature sensing needles arranged equidistance above and below a central heater. These needles are inserted into the water conducting tissue of the plant by drilling 3 small parallel holes. Heat is then pulsed every 10 minutes into the water conducting tissue of the plant. The heat is used as a tracer to directly measure the velocity of water movement in the plant stem."
+                },
+            }
+        }
+
+        # Assertions
+        patch_calls = mock_django_patch.call_args_list # Extract the call arguments from the call_args_list
+        assert patch_calls, "Expected at least one PATCH call"
+        patch_calls[0].assert_called_once_with( f"{API_INTERFACE}/lorawandevices/{deveui}/", headers=self.tracker.d_client.auth_header, json=update_ld_data)
+        patch_calls[1].assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/{VSN}/{deveui}/", headers=self.tracker.d_client.auth_header, json=udpate_lc_data)
+        patch_calls[2].assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{deveui}/", headers=self.tracker.d_client.auth_header, json=update_lk_data)
+        self.assertTrue(self.manifest.dict["lorawanconnections"][0] == update_manifest_data) #self.manifest.dict["lorawanconnections"][0] is 7d1f5420e81235c1 device
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch("app.django_client.HttpMethod.PATCH")
+    @patch("app.django_client.DjangoClient.ld_search")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.manifest.Manifest.load_manifest')
+    def test_on_message_dev_not_exist_1(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_django_patch, mock_django_post):
+        """
+        Test on_message() happy path when device DOES NOT exist in the manifest but EXIST in django
+        """
+        #Arrange
+        #   mock Manifest.load_manifest()
+        mock_load_manifest.return_value = self.manifest.dict
+        #   change deveui in mocks to one NOT existing in manifest sample
+        deveui = "12345678912345a3" 
+        self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
+        self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock chirpstack encoded message
+        ChirpMessage = Mock()
+        ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
+        #   mock ChirpstackClient.get_device()
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        #   mock ChirpstackClient.get_device_profile()
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackClient.get_device_activation()
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackCLinet.get_device_app_key()
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        # mock DjangoClient.ld_search()
+        mock_ld_search.return_value = True
+
+        #call the action in testing
+        client = Mock()
+        userdata = Mock()
+        temp = self.tracker.on_message(client, userdata, ChirpMessage)
+
+        #data that should have been used
+        datetime_obj_utc = epoch_to_UTC(
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
+        )        
+        last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
+        key_resp = self.tracker.c_client.get_device_app_key(deveui,lw_v)
+        mock_lc_str = "mock_lc_uid"
+        update_ld_data = {
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level
+        }
+        create_lc_data = {
+            "node": VSN,
+            "lorawan_device": deveui,
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            'last_seen_at': last_seen_at, 
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type
+        }
+        create_lk_data = {
+            "lorawan_connection": mock_lc_str,
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
+        }
+        update_manifest_data = {
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "last_seen_at": last_seen_at,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type,
+            "lorawandevice": {
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+                "hardware": {
+                    "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+                    "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+                    "capabilities": ["lorawan"],
+                    "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description
+                },
+            }
+        }
+
+        # Assertions
+        post_calls = mock_django_post.call_args_list # Extract the call arguments from the call_args_list
+        assert post_calls, "Expected at least one PATCH call"
+        mock_django_patch.assert_called_once_with( f"{API_INTERFACE}/lorawandevices/{deveui}/", headers=self.tracker.d_client.auth_header, json=update_ld_data)
+        post_calls[0].assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=create_lc_data)
+        post_calls[1].assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=create_lk_data)
+        self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == update_manifest_data)
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch("app.django_client.DjangoClient.get_sh")
+    @patch("app.django_client.DjangoClient.sh_search")
+    @patch("app.django_client.DjangoClient.ld_search")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.manifest.Manifest.load_manifest')
+    def test_on_message_dev_not_exist_2(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_get_sh, mock_django_post):
+        """
+        Test on_message() happy path when device DOES NOT exist in the manifest and in django but sensor hardware exist in django
+        """
+        #Arrange
+        #   mock Manifest.load_manifest()
+        mock_load_manifest.return_value = self.manifest.dict
+        #   change deveui in mocks to one NOT existing in manifest sample
+        deveui = "12345678912345a3" 
+        self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
+        self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock chirpstack encoded message
+        ChirpMessage = Mock()
+        ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
+        #   mock ChirpstackClient.get_device()
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        #   mock ChirpstackClient.get_device_profile()
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackClient.get_device_activation()
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackCLinet.get_device_app_key()
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        #   mock search return values
+        mock_ld_search.return_value = False
+        mock_sh_search.return_value = True
+        #   mock django get sh return value
+        mock_get_sh.return_value = {'json_body':{"id": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.id}}
+
+        #call the action in testing
+        client = Mock()
+        userdata = Mock()
+        temp = self.tracker.on_message(client, userdata, ChirpMessage)
+
+        #data that should have been used
+        datetime_obj_utc = epoch_to_UTC(
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
+        )        
+        last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
+        key_resp = self.tracker.c_client.get_device_app_key(deveui,lw_v)
+        mock_lc_str = "mock_lc_uid"
+        create_ld_data = {
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.id,
+            "deveui": deveui
+        }
+        create_lc_data = {
+            "node": VSN,
+            "lorawan_device": deveui,
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            'last_seen_at': last_seen_at, 
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type
+        }
+        create_lk_data = {
+            "lorawan_connection": mock_lc_str,
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
+        }
+        update_manifest_data = {
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "last_seen_at": last_seen_at,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type,
+            "lorawandevice": {
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+                "hardware": {
+                    "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+                    "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+                    "capabilities": ["lorawan"],
+                    "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description
+                },
+            }
+        }
+
+        # Assertions
+        post_calls = mock_django_post.call_args_list # Extract the call arguments from the call_args_list
+        assert post_calls, "Expected at least one PATCH call"
+        post_calls[0].assert_called_once_with( f"{API_INTERFACE}/lorawandevices/", headers=self.tracker.d_client.auth_header, json=create_ld_data)
+        post_calls[1].assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=create_lc_data)
+        post_calls[2].assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=create_lk_data)
+        self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == update_manifest_data)
+
+
+    @patch("app.django_client.HttpMethod.POST")
+    @patch("app.django_client.DjangoClient.sh_search")
+    @patch("app.django_client.DjangoClient.ld_search")
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.manifest.Manifest.load_manifest')
+    def test_on_message_dev_not_exist_3(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_django_post):
+        """
+        Test on_message() happy path when device DOES NOT exist in the manifest and in django and sensor hardware DOES NOT exist in django
+        """
+        #Arrange
+        #   mock Manifest.load_manifest()
+        mock_load_manifest.return_value = self.manifest.dict
+        #   change deveui in mocks to one NOT existing in manifest sample
+        deveui = "12345678912345a3" 
+        self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
+        self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock chirpstack encoded message
+        ChirpMessage = Mock()
+        ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
+        #   mock ChirpstackClient.get_device()
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        #   mock ChirpstackClient.get_device_profile()
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackClient.get_device_activation()
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
+        #   mock ChirpstackCLinet.get_device_app_key()
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        #   mock search return values
+        mock_ld_search.return_value = False
+        mock_sh_search.return_value = False
+
+        #call the action in testing
+        client = Mock()
+        userdata = Mock()
+        temp = self.tracker.on_message(client, userdata, ChirpMessage)
+
+        #data that should have been used
+        datetime_obj_utc = epoch_to_UTC(
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
+        )        
+        last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
+        key_resp = self.tracker.c_client.get_device_app_key(deveui,lw_v)
+        mock_lc_str = "mock_lc_uid"
+
+        create_sh_data = {
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+            "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description,
+            "capabilities": [35]
+        }
+        create_ld_data = {
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.id,
+            "deveui": deveui
+        }
+        create_lc_data = {
+            "node": VSN,
+            "lorawan_device": deveui,
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            'last_seen_at': last_seen_at, 
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type
+        }
+        create_lk_data = {
+            "lorawan_connection": mock_lc_str,
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
+            "app_key": key_resp
+        }
+        update_manifest_data = {
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "last_seen_at": last_seen_at,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
+            "connection_type": con_type,
+            "lorawandevice": {
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
+                "hardware": {
+                    "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+                    "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+                    "capabilities": ["lorawan"],
+                    "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description
+                },
+            }
+        }
+
+        # Assertions
+        post_calls = mock_django_post.call_args_list # Extract the call arguments from the call_args_list
+        assert post_calls, "Expected at least one PATCH call"
+        post_calls[0].assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.tracker.d_client.auth_header, json=create_sh_data)
+        post_calls[1].assert_called_once_with( f"{API_INTERFACE}/lorawandevices/", headers=self.tracker.d_client.auth_header, json=create_ld_data)
+        post_calls[2].assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=create_lc_data)
+        post_calls[3].assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=create_lk_data)
+        self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == update_manifest_data)
+
+
+        # TODO: add a test case for each if case that can happen in Tracker.on_message()
