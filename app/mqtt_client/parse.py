@@ -15,9 +15,13 @@ def Get_device(message_dict):
     try:
         tmp_dict['deviceName'] = deviceInfo_dict['deviceName']
         tmp_dict['devEui'] = deviceInfo_dict['devEui']
-    except:
-        logging.error("deviceInfo was not found")
-        raise ValueError("deviceInfo was not found")
+        tmp_dict['deviceProfileId'] = deviceInfo_dict['deviceProfileId']
+    except TypeError as e:
+        logging.error(f"Get_device(): {e}")
+        raise TypeError(f"Get_device(): {e}")
+    except KeyError as e:
+        logging.error(f"Get_device(): {e}")
+        raise KeyError(f"Get_device(): {e}")
 
     return tmp_dict
 

@@ -300,23 +300,34 @@ class TestGetDevice(unittest.TestCase):
         Test Get_device() happy path
         """
         # Mock the input message_dict
-        message_dict = {'deviceInfo': {'deviceName': 'TestDevice', 'devEui': '0123456789ABCDEF'}}
+        message_dict = {'deviceInfo': {
+            'deviceName': 'TestDevice', 
+            'devEui': '0123456789ABCDEF', 
+            'deviceProfileId': '14855bf7-d10d-4aee-b618-ebfcb64dc7ad'
+            }}
 
         # Call the Get_device function
         result = Get_device(message_dict)
 
         # Assert that the result is as expected
-        self.assertEqual(result, {'deviceName': 'TestDevice', 'devEui': '0123456789ABCDEF'})
+        self.assertEqual(
+            result, 
+            {
+                'deviceName': 'TestDevice', 
+                'devEui': '0123456789ABCDEF',
+                'deviceProfileId': '14855bf7-d10d-4aee-b618-ebfcb64dc7ad'
+            }
+        )
 
     def test_get_device_missing_device_info(self):
         """
         Test Get_device() when message does not have deviceInfo
         """
         # Mock the input message_dict with missing deviceInfo
-        message_dict = {}
+        message_dict = {'test':{}}
 
         # Call the Get_device function and expect a ValueError
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             Get_device(message_dict)
 
     def test_get_device_missing_device_info_values(self):
@@ -327,7 +338,7 @@ class TestGetDevice(unittest.TestCase):
         message_dict = {'deviceInfo': {}}
 
         # Call the Get_device function and expect a ValueError
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KeyError):
             Get_device(message_dict)
 
 class TestGetSignalPerformanceValues(unittest.TestCase):
