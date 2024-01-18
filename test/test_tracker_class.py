@@ -930,7 +930,7 @@ class TestUpdateManifest(unittest.TestCase):
 
 class TestOnMessage(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel') #TODO: do i need to moch channel?
+    @patch('app.chirpstack_client.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -1374,6 +1374,3 @@ class TestOnMessage(unittest.TestCase):
         post_calls[2].assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=create_lc_data)
         post_calls[3].assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=create_lk_data)
         self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == update_manifest_data)
-
-
-        # TODO: add a test case for each if case that can happen in Tracker.on_message()
