@@ -22,100 +22,118 @@ CHIRPSTACK_API_INTERFACE = "wes-chirpstack-server:8080"
 CHIRPSTACK_ACT_EMAIL = "test"
 CHIRPSTACK_ACT_PASSWORD = "test"
 MANIFEST_FILEPATH = '/etc/waggle/node-manifest-v2.json'
-MESSAGE = MessageTemplate().sample
 
-def Mock_gd_ret_val():
-    """
-    Mock ChirpstackClient.get_device() return value
-    """
-    val = MagicMock()
-    val.device = MagicMock()
-    val.device.dev_eui = "112123a120031b11"
-    val.device.name = "mock device"
-    val.device.application_id = "ac81e18b-1925-47f9-839a-27d999a8af11"
-    val.device.device_profile_id = "cf2aec2f-03e1-4a60-a32c-0faeef5730c1"
-    val.created_at = MagicMock()
-    val.created_at.seconds = 1695922619
-    val.created_at.nanos = 943604000
-    val.updated_at = MagicMock()
-    val.updated_at.seconds = 1695923278
-    val.updated_at.nanos = 943604000
-    val.last_seen_at = MagicMock()
-    val.last_seen_at.seconds = 1700675528
-    val.last_seen_at.nanos = 993262000
-    val.device_status = MagicMock()
-    val.device_status.margin = 11
-    val.device_status.external_power_source = True
-    val.device_status.battery_level = -1
+class Mock_ChirpstackClient_Methods:
 
-    return val
+    def __init__(self, deveui: str):
+        self.deveui = deveui
+        self.get_device_ret_val = self.__Mock_gd_ret_val()
+        self.get_device_profile_ret_val = self.__Mock_gdp_ret_val()
+        self.get_device_activation_ret_val = self.__Mock_gda_ret_val() 
+        self.get_device_app_key_ret_val = self.__Mock_gdak_ret_val()
 
-def Mock_gdp_ret_val():
-    """
-    Mock ChirpstackClient.get_device_profile() return value
-    """
-    val = Mock()
-    val.device_profile = Mock()
-    val.device_profile.id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d9"
-    val.device_profile.tenant_id = "52f14cd4-c6f1-4fbd-8f87-4025e1d49241"
-    val.device_profile.name = "Mock Profile"
-    val.device_profile.description = "this is a mock profile"
-    val.device_profile.region = 2 #2 = US915
-    val.device_profile.mac_version = 2 #2 = LORAWAN_1_0_2
-    val.device_profile.reg_params_revision = 1 #1 = B
-    val.device_profile.adr_algorithm_id = "default"
-    val.device_profile.payload_codec_runtime = 1 #1 = JS
-    val.device_profile.payload_codec_script = "var=example\nreturn var;"
-    val.device_profile.flush_queue_on_activate = True
-    val.device_profile.uplink_interval = 1020
-    val.device_profile.device_status_req_interval = 10
-    val.device_profile.supports_otaa = True
-    val.device_profile.measurements = None
-    val.device_profile.auto_detect_measurements = True
-    val.created_at = Mock()
-    val.created_at.seconds = 1694716861
-    val.created_at.nanos = 633915000
-    val.updated_at = Mock()
-    val.updated_at.seconds = 1704991331
-    val.updated_at.nanos = 511071000
+    def edit_deveui(self, deveui: str):
+        """
+        Edit the deveui on all methods' return values
+        """
+        self.deveui = deveui
+        self.get_device_ret_val = self.__Mock_gd_ret_val()
+        self.get_device_activation_ret_val = self.__Mock_gda_ret_val()
+        self.get_device_app_key_ret_val = self.__Mock_gdak_ret_val()
+        return
 
-    return val
+    def __Mock_gd_ret_val(self):
+        """
+        Mock ChirpstackClient.get_device() return value
+        """
+        val = MagicMock()
+        val.device = MagicMock()
+        val.device.dev_eui = self.deveui
+        val.device.name = "mock device"
+        val.device.application_id = "ac81e18b-1925-47f9-839a-27d999a8af11"
+        val.device.device_profile_id = "cf2aec2f-03e1-4a60-a32c-0faeef5730c1"
+        val.created_at = MagicMock()
+        val.created_at.seconds = 1695922619
+        val.created_at.nanos = 943604000
+        val.updated_at = MagicMock()
+        val.updated_at.seconds = 1695923278
+        val.updated_at.nanos = 943604000
+        val.last_seen_at = MagicMock()
+        val.last_seen_at.seconds = 1700675528
+        val.last_seen_at.nanos = 993262000
+        val.device_status = MagicMock()
+        val.device_status.margin = 11
+        val.device_status.external_power_source = True
+        val.device_status.battery_level = -1
 
-def Mock_gda_ret_val():
-    """
-    Mock ChirpstackClient.get_device_activation() return value
-    """
-    val = MagicMock()
-    val.device_activation = MagicMock()
-    val.device_activation.dev_eui = "112123a120031b11"
-    val.device_activation.dev_addr = "00d65cd1"
-    val.device_activation.app_s_key = "6e0f556d5975b872d744aee2c1239d5"
-    val.device_activation.nwk_s_enc_key = "123456785975b872d744aee2a1239d12"
-    val.device_activation.s_nwk_s_int_key = "1234567891023s89s53122s5678d9"
-    val.device_activation.f_nwk_s_int_key = "23655489416521d5615a61651d652"
-    val.device_activation.f_cnt_up = 200
-    val.device_activation.n_f_cnt_down = 23
-    val.device_activation.a_f_cnt_down = 10
+        return val
 
-    return val
+    def __Mock_gdp_ret_val(self):
+        """
+        Mock ChirpstackClient.get_device_profile() return value
+        """
+        val = Mock()
+        val.device_profile = Mock()
+        val.device_profile.id = "cf2aec2f-03e1-4a60-a32c-0faeef5730d9"
+        val.device_profile.tenant_id = "52f14cd4-c6f1-4fbd-8f87-4025e1d49241"
+        val.device_profile.name = "Mock Profile"
+        val.device_profile.description = "this is a mock profile"
+        val.device_profile.region = 2 #2 = US915
+        val.device_profile.mac_version = 2 #2 = LORAWAN_1_0_2
+        val.device_profile.reg_params_revision = 1 #1 = B
+        val.device_profile.adr_algorithm_id = "default"
+        val.device_profile.payload_codec_runtime = 1 #1 = JS
+        val.device_profile.payload_codec_script = "var=example\nreturn var;"
+        val.device_profile.flush_queue_on_activate = True
+        val.device_profile.uplink_interval = 1020
+        val.device_profile.device_status_req_interval = 10
+        val.device_profile.supports_otaa = True
+        val.device_profile.measurements = None
+        val.device_profile.auto_detect_measurements = True
+        val.created_at = Mock()
+        val.created_at.seconds = 1694716861
+        val.created_at.nanos = 633915000
+        val.updated_at = Mock()
+        val.updated_at.seconds = 1704991331
+        val.updated_at.nanos = 511071000
 
-def Mock_gdak_ret_val():
-    """
-    Mock ChirpstackClient.get_device_app_key() return value
-    """
-    val = MagicMock()
-    val.device_keys = MagicMock()
-    val.device_keys.dev_eui = "9821230120031b00"
-    val.device_keys.nwk_key = "7e19d51b647b123dd123c484707aadc1"
-    val.device_keys.app_key = "00000000000000000000000000000000"
-    val.created_at = MagicMock()
-    val.created_at.seconds = 1689015468
-    val.created_at.nanos = 197740000
-    val.updated_at = MagicMock()
-    val.updated_at.seconds = 1700603333
-    val.updated_at.nanos = 648973000
+        return val
 
-    return val
+    def __Mock_gda_ret_val(self):
+        """
+        Mock ChirpstackClient.get_device_activation() return value
+        """
+        val = MagicMock()
+        val.device_activation = MagicMock()
+        val.device_activation.dev_eui = self.deveui
+        val.device_activation.dev_addr = "00d65cd1"
+        val.device_activation.app_s_key = "6e0f556d5975b872d744aee2c1239d5"
+        val.device_activation.nwk_s_enc_key = "123456785975b872d744aee2a1239d12"
+        val.device_activation.s_nwk_s_int_key = "1234567891023s89s53122s5678d9"
+        val.device_activation.f_nwk_s_int_key = "23655489416521d5615a61651d652"
+        val.device_activation.f_cnt_up = 200
+        val.device_activation.n_f_cnt_down = 23
+        val.device_activation.a_f_cnt_down = 10
+
+        return val
+
+    def __Mock_gdak_ret_val(self):
+        """
+        Mock ChirpstackClient.get_device_app_key() return value
+        """
+        val = MagicMock()
+        val.device_keys = MagicMock()
+        val.device_keys.dev_eui = self.deveui
+        val.device_keys.nwk_key = "7e19d51b647b123dd123c484707aadc1"
+        val.device_keys.app_key = "00000000000000000000000000000000"
+        val.created_at = MagicMock()
+        val.created_at.seconds = 1689015468
+        val.created_at.nanos = 197740000
+        val.updated_at = MagicMock()
+        val.updated_at.seconds = 1700603333
+        val.updated_at.nanos = 648973000
+
+        return val
 
 class TestUpdateLd(unittest.TestCase):
 
@@ -136,7 +154,7 @@ class TestUpdateLd(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient.get_device() return value
-        self.gd_ret_val = Mock_gd_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
     @patch('app.chirpstack_client.api.DeviceServiceStub')
@@ -152,7 +170,7 @@ class TestUpdateLd(unittest.TestCase):
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
         #mock return val
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -165,8 +183,8 @@ class TestUpdateLd(unittest.TestCase):
 
         #data that should have been used
         data = {
-            "name": replace_spaces(self.gd_ret_val.device.name),
-            "battery_level": self.gd_ret_val.device_status.battery_level
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level
         }
 
         # Call the action in testing
@@ -194,7 +212,7 @@ class TestCreateLd(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient.get_device() return value
-        self.gd_ret_val = Mock_gd_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
     @patch('app.chirpstack_client.api.DeviceServiceStub')
@@ -210,7 +228,7 @@ class TestCreateLd(unittest.TestCase):
         # Mock DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
         #mock return val
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -226,8 +244,8 @@ class TestCreateLd(unittest.TestCase):
 
         #data that should have been used
         data = {
-            "name": replace_spaces(self.gd_ret_val.device.name),
-            "battery_level": self.gd_ret_val.device_status.battery_level,
+            "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+            "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
             "hardware": mock_sh_id,
             "deveui": mock_dev_eui
         }
@@ -256,10 +274,8 @@ class TestUpdateLc(unittest.TestCase):
         )
         #set up tracker
         self.tracker = Tracker(self.args)
-        #mock ChirpstackClient.get_device() return value
-        self.gd_ret_val = Mock_gd_ret_val() 
-        #mock ChirpstackClient.get_device_profile() return value
-        self.gdp_ret_val = Mock_gdp_ret_val()
+        #mock ChirpstackClient method return values
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
@@ -279,8 +295,8 @@ class TestUpdateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         #mock return vals
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -299,16 +315,16 @@ class TestUpdateLc(unittest.TestCase):
 
         #data that should have been used
         datetime_obj_utc = epoch_to_UTC(
-            self.gd_ret_val.last_seen_at.seconds, 
-            self.gd_ret_val.last_seen_at.nanos
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
         )        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
         data = {
-            "connection_name": replace_spaces(self.gd_ret_val.device.name),
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
             'last_seen_at': last_seen_at, 
-            "margin": self.gd_ret_val.device_status.margin,
-            "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
             "connection_type": con_type
         }
 
@@ -336,10 +352,8 @@ class TestCreateLc(unittest.TestCase):
         )
         #set up tracker
         self.tracker = Tracker(self.args)
-        #mock ChirpstackClient.get_device() return value
-        self.gd_ret_val = Mock_gd_ret_val() 
-        #mock ChirpstackClient.get_device_profile() return value
-        self.gdp_ret_val = Mock_gdp_ret_val()
+        #mock ChirpstackClient method return values
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
@@ -359,8 +373,8 @@ class TestCreateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         #mock return vals
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -379,18 +393,18 @@ class TestCreateLc(unittest.TestCase):
 
         #data that should have been used
         datetime_obj_utc = epoch_to_UTC(
-            self.gd_ret_val.last_seen_at.seconds, 
-            self.gd_ret_val.last_seen_at.nanos
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
         )        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
         data = {
             "node": VSN,
             "lorawan_device": mock_dev_eui,
-            "connection_name": replace_spaces(self.gd_ret_val.device.name),
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
             'last_seen_at': last_seen_at, 
-            "margin": self.gd_ret_val.device_status.margin,
-            "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
             "connection_type": con_type
         }
 
@@ -423,8 +437,8 @@ class TestCreateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
         
         #mock return vals
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -443,18 +457,18 @@ class TestCreateLc(unittest.TestCase):
 
         #data that should have been used
         datetime_obj_utc = epoch_to_UTC(
-            self.gd_ret_val.last_seen_at.seconds, 
-            self.gd_ret_val.last_seen_at.nanos
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
         )        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
         data = {
             "node": VSN,
             "lorawan_device": mock_dev_eui,
-            "connection_name": replace_spaces(self.gd_ret_val.device.name),
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
             'last_seen_at': last_seen_at, 
-            "margin": self.gd_ret_val.device_status.margin,
-            "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin,
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
             "connection_type": con_type
         }
 
@@ -489,9 +503,7 @@ class TestUpdateLk(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient method return values
-        self.gda_ret_val = Mock_gda_ret_val()
-        self.gdp_ret_val = Mock_gdp_ret_val()
-        self.gdak_ret_val = Mock_gdak_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
@@ -511,9 +523,9 @@ class TestUpdateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
-        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_activation_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -531,12 +543,12 @@ class TestUpdateLk(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        lw_v = self.gdp_ret_val.device_profile.mac_version
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
         key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
         data = {
-            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key, 
-            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
-            "dev_address": self.gda_ret_val.device_activation.dev_addr,
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key, 
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
             "app_key": key_resp
         }
 
@@ -556,7 +568,7 @@ class TestUpdateLk(unittest.TestCase):
         to call DjangoClient.update_lk() when the device is using ABP
         """
         #change to ABP
-        self.gdp_ret_val.device_profile.supports_otaa = False
+        self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa = False
 
         # Mock the gRPC channel
         mock_channel = Mock()
@@ -567,9 +579,9 @@ class TestUpdateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
-        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_activation_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -587,12 +599,12 @@ class TestUpdateLk(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #data that should have been used
-        lw_v = self.gdp_ret_val.device_profile.mac_version
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
         key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
         data = {
-            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key, 
-            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
-            "dev_address": self.gda_ret_val.device_activation.dev_addr
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key, 
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr
         }
 
         # Call the action in testing
@@ -620,9 +632,7 @@ class TestCreateLk(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient method return values
-        self.gda_ret_val = Mock_gda_ret_val()
-        self.gdp_ret_val = Mock_gdp_ret_val()
-        self.gdak_ret_val = Mock_gdak_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
@@ -642,9 +652,9 @@ class TestCreateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
-        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_activation_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -663,13 +673,13 @@ class TestCreateLk(unittest.TestCase):
 
         #data that should have been used
         mock_lc_str = "mock_lc_uid"
-        lw_v = self.gdp_ret_val.device_profile.mac_version
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
         key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
         data = {
             "lorawan_connection": mock_lc_str,
-            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key,  
-            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
-            "dev_address": self.gda_ret_val.device_activation.dev_addr,
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr,
             "app_key": key_resp
         }
 
@@ -689,7 +699,7 @@ class TestCreateLk(unittest.TestCase):
         to call DjangoClient.create_lk() when the device is using ABP
         """
         #change to ABP
-        self.gdp_ret_val.device_profile.supports_otaa = False
+        self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa = False
 
         # Mock the gRPC channel
         mock_channel = Mock()
@@ -700,9 +710,9 @@ class TestCreateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.GetActivation.return_value = self.gda_ret_val
-        mock_device_service_stub_instance.GetKeys.return_value = self.gdak_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_activation_ret_val
+        mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -721,13 +731,13 @@ class TestCreateLk(unittest.TestCase):
 
         #data that should have been used
         mock_lc_str = "mock_lc_uid"
-        lw_v = self.gdp_ret_val.device_profile.mac_version
+        lw_v = self.mock_chirp_methods.get_device_profile_ret_val.device_profile.mac_version
         key_resp = chirpstack_client.get_device_app_key(mock_dev_eui,lw_v)
         data = {
             "lorawan_connection": mock_lc_str,
-            "network_Key": self.gda_ret_val.device_activation.nwk_s_enc_key,  
-            "app_session_key": self.gda_ret_val.device_activation.app_s_key,
-            "dev_address": self.gda_ret_val.device_activation.dev_addr
+            "network_Key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.nwk_s_enc_key,  
+            "app_session_key": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.app_s_key,
+            "dev_address": self.mock_chirp_methods.get_device_activation_ret_val.device_activation.dev_addr
         }
 
         # Call the action in testing
@@ -755,7 +765,7 @@ class TestCreateSh(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient method return values
-        self.gdp_ret_val = Mock_gdp_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
@@ -773,9 +783,9 @@ class TestCreateSh(unittest.TestCase):
         }
         response_data = {
             "id": 1,
-            "hardware": self.gdp_ret_val.device_profile.name,
-            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
-            "description": self.gdp_ret_val.device_profile.description,
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+            "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description,
             "capabilities": [35]
             }
         mock_response = Mock()
@@ -790,7 +800,7 @@ class TestCreateSh(unittest.TestCase):
         # Mock stubs
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
         # Mock return val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -803,9 +813,9 @@ class TestCreateSh(unittest.TestCase):
 
         #data that should have been used
         data = {
-            "hardware": self.gdp_ret_val.device_profile.name,
-            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
-            "description": self.gdp_ret_val.device_profile.description,
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+            "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description,
             "capabilities": [35]
         }
 
@@ -835,7 +845,7 @@ class TestCreateSh(unittest.TestCase):
         # Mock stubs
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
         # Mock return val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
@@ -848,9 +858,9 @@ class TestCreateSh(unittest.TestCase):
 
         #data that should have been used
         data = {
-            "hardware": self.gdp_ret_val.device_profile.name,
-            "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
-            "description": self.gdp_ret_val.device_profile.description,
+            "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+            "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
+            "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description,
             "capabilities": [35]
         }
 
@@ -889,8 +899,7 @@ class TestUpdateManifest(unittest.TestCase):
         #set up tracker
         self.tracker = Tracker(self.args)
         #mock ChirpstackClient method return values
-        self.gd_ret_val = Mock_gd_ret_val()
-        self.gdp_ret_val = Mock_gdp_ret_val()
+        self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
@@ -901,7 +910,7 @@ class TestUpdateManifest(unittest.TestCase):
         to call Manifest.update_manifest() when device exists in the manifest
         """
         #change deveui to one existing in manifest sample
-        self.gd_ret_val.device.dev_eui = "7d1f5420e81235c1"
+        self.mock_chirp_methods.edit_deveui("7d1f5420e81235c1")
 
         # Mock the gRPC channel
         mock_channel = Mock()
@@ -912,14 +921,14 @@ class TestUpdateManifest(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
 
         # Call chirpstack_client get_device
-        device_resp = chirpstack_client.get_device(self.gd_ret_val.device.dev_eui)
+        device_resp = chirpstack_client.get_device(self.mock_chirp_methods.get_device_ret_val.device.dev_eui)
 
         # Mock the device profile ID
         mock_device_profile_id = "mock_device_profile_id"
@@ -928,23 +937,23 @@ class TestUpdateManifest(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #updated lorawan entry should look like this
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
         datetime_obj_utc = epoch_to_UTC(
-            self.gd_ret_val.last_seen_at.seconds, 
-            self.gd_ret_val.last_seen_at.nanos
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
         )        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         new_data = {
-            "connection_name": replace_spaces(self.gd_ret_val.device.name),
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
             "created_at": "2023-12-13T19:47:45.355000Z",
             "last_seen_at": last_seen_at,
-            "margin": self.gd_ret_val.device_status.margin, 
-            "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
             "connection_type": con_type,
             "lorawandevice": {
-                "deveui": self.gd_ret_val.device.dev_eui,
-                "name": replace_spaces(self.gd_ret_val.device.name),
-                "battery_level": self.gd_ret_val.device_status.battery_level,
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
                 "hardware": {
                     "hardware": "Sap Flow Meter",
                     "hw_model": "SFM1x",
@@ -959,7 +968,7 @@ class TestUpdateManifest(unittest.TestCase):
         }
 
         #call the action in testing
-        self.tracker.update_manifest(self.gd_ret_val.device.dev_eui, self.manifest, device_resp, deviceprofile_resp)
+        self.tracker.update_manifest(self.mock_chirp_methods.get_device_ret_val.device.dev_eui, self.manifest, device_resp, deviceprofile_resp)
 
         #Assert if manifest dict was updated
         self.assertTrue(self.manifest.dict["lorawanconnections"][0] == new_data) #self.manifest.dict["lorawanconnections"][0] is 7d1f5420e81235c1 device
@@ -973,7 +982,7 @@ class TestUpdateManifest(unittest.TestCase):
         to call Manifest.update_manifest() when device DOES NOT exists in the manifest
         """
         #change deveui to non existing in manifest sample
-        self.gd_ret_val.device.dev_eui = "12345678912345a3"
+        self.mock_chirp_methods.edit_deveui("12345678912345a3")
 
         # Mock the gRPC channel
         mock_channel = Mock()
@@ -984,14 +993,14 @@ class TestUpdateManifest(unittest.TestCase):
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
 
         # Mock return values
-        mock_device_service_stub_instance.Get.return_value = self.gd_ret_val
-        mock_device_profile_service_stub_instance.Get.return_value = self.gdp_ret_val
+        mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
+        mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
         chirpstack_client = ChirpstackClient(self.args)
 
         # Call chirpstack_client get_device
-        device_resp = chirpstack_client.get_device(self.gd_ret_val.device.dev_eui)
+        device_resp = chirpstack_client.get_device(self.mock_chirp_methods.get_device_ret_val.device.dev_eui)
 
         # Mock the device profile ID
         mock_device_profile_id = "mock_device_profile_id"
@@ -1000,33 +1009,33 @@ class TestUpdateManifest(unittest.TestCase):
         deviceprofile_resp = chirpstack_client.get_device_profile(mock_device_profile_id)
 
         #new lorawan entry should look like this
-        con_type = "OTAA" if self.gdp_ret_val.device_profile.supports_otaa else "ABP"
+        con_type = "OTAA" if self.mock_chirp_methods.get_device_profile_ret_val.device_profile.supports_otaa else "ABP"
         datetime_obj_utc = epoch_to_UTC(
-            self.gd_ret_val.last_seen_at.seconds, 
-            self.gd_ret_val.last_seen_at.nanos
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.seconds, 
+            self.mock_chirp_methods.get_device_ret_val.last_seen_at.nanos
         )        
         last_seen_at = datetime_obj_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         new_data = {
-            "connection_name": replace_spaces(self.gd_ret_val.device.name),
+            "connection_name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
             "last_seen_at": last_seen_at,
-            "margin": self.gd_ret_val.device_status.margin, 
-            "expected_uplink_interval_sec": self.gdp_ret_val.device_profile.uplink_interval,
+            "margin": self.mock_chirp_methods.get_device_ret_val.device_status.margin, 
+            "expected_uplink_interval_sec": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.uplink_interval,
             "connection_type": con_type,
             "lorawandevice": {
-                "deveui": self.gd_ret_val.device.dev_eui,
-                "name": replace_spaces(self.gd_ret_val.device.name),
-                "battery_level": self.gd_ret_val.device_status.battery_level,
+                "deveui": self.mock_chirp_methods.get_device_ret_val.device.dev_eui,
+                "name": replace_spaces(self.mock_chirp_methods.get_device_ret_val.device.name),
+                "battery_level": self.mock_chirp_methods.get_device_ret_val.device_status.battery_level,
                 "hardware": {
-                    "hardware": self.gdp_ret_val.device_profile.name,
-                    "hw_model": clean_hw_model(self.gdp_ret_val.device_profile.name),
+                    "hardware": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name,
+                    "hw_model": clean_hw_model(self.mock_chirp_methods.get_device_profile_ret_val.device_profile.name),
                     "capabilities": ["lorawan"],
-                    "description": self.gdp_ret_val.device_profile.description
+                    "description": self.mock_chirp_methods.get_device_profile_ret_val.device_profile.description
                 },
             }
         }
 
         #call the action in testing
-        self.tracker.update_manifest(self.gd_ret_val.device.dev_eui, self.manifest, device_resp, deviceprofile_resp)
+        self.tracker.update_manifest(self.mock_chirp_methods.get_device_ret_val.device.dev_eui, self.manifest, device_resp, deviceprofile_resp)
 
         #Assert if manifest dict was updated
-        self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == new_data) 
+        self.assertTrue(self.manifest.dict["lorawanconnections"][-1] == new_data)
