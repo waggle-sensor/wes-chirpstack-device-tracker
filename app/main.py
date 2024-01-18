@@ -1,14 +1,8 @@
 import os
-import sys
-import datetime
-import grpc
-from chirpstack_api import api
-from chirpstack_client import ChirpstackClient
-#from mqtt_client import MqttClient
 import argparse
 import logging
 from pathlib import Path
-from django_client import DjangoClient
+from tracker import Tracker
 
 def main():
 
@@ -96,12 +90,9 @@ def main():
         format="%(asctime)s %(message)s",
         datefmt="%Y/%m/%d %H:%M:%S",
     )
-        
-    #TODO: uncomment once everything is ready to be ran in a pod and configure tracker
-    # #configure mqtt client
-    # mqtt_client = MqttClient(args)
-    # mqtt_client.run()
+
+    tracker = Tracker(args)
+    tracker.run()
 
 if __name__ == "__main__":
-
     main()
