@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM --platform=arm64 python:3.8-slim AS build
 WORKDIR /app
 COPY ./app /app
 RUN pip install --upgrade pip \
