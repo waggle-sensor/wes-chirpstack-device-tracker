@@ -2,10 +2,10 @@ import re
 
 def replace_spaces(str: str) -> str:
     """
-    replace spaces with "-"
+    replace spaces with "_"
     """
-    temp = str.replace(" ", "-")
-    temp = re.sub(r'-+', '-', temp) # replace consecutive hyphens with a single hyphen
+    temp = str.replace(" ", "_")
+    temp = re.sub(r'_+', '_', temp) # replace consecutive "_" with a single "_"
     return temp
 
 def clean_hw_model(str: str) -> str:
