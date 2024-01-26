@@ -22,10 +22,10 @@ class DjangoClient:
         self.vsn = self.args.vsn
         self.auth_token = self.args.node_token
         self.auth_header = {"Authorization": f"node_auth {self.auth_token}"}
-        self.LC_ROUTER = self.args.lorawanconnection_router
-        self.LK_ROUTER = self.args.lorawankey_router
-        self.LD_ROUTER = self.args.lorawandevice_router
-        self.SH_ROUTER = self.args.sensorhardware_router
+        self.LC_ROUTER = self.args.lorawan_connection_router
+        self.LK_ROUTER = self.args.lorawan_key_router
+        self.LD_ROUTER = self.args.lorawan_device_router
+        self.SH_ROUTER = self.args.sensor_hardware_router
 
     def get_lc(self, dev_eui: str) -> dict:
         """
