@@ -1,11 +1,17 @@
 import logging
 from argparse import Namespace
-from chirpstack_client import ChirpstackClient
-from django_client import DjangoClient
-from mqtt_client import MqttClient
-from manifest import Manifest
 from .parse import *
 from .convert_date import *
+try:  # production
+    from chirpstack_client import ChirpstackClient
+    from django_client import DjangoClient
+    from mqtt_client import MqttClient
+    from manifest import Manifest
+except ImportError:  # testing
+    from app.chirpstack_client import ChirpstackClient
+    from app.django_client import DjangoClient
+    from app.mqtt_client import MqttClient
+    from app.manifest import Manifest
 
 class Tracker(MqttClient):
     """
