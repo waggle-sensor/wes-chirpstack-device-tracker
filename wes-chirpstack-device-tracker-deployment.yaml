@@ -16,8 +16,8 @@ spec:
         resource.lorawan: "true"
       containers:
         - name: wes-chirpstack-tracker
-          image: wes-chirpstack-tracker:latest
-          imagePullPolicy: IfNotPresent  # TODO: change once deployed
+          image: 10.31.81.1:5000/local/wes-chirpstack-tracker:latest
+          imagePullPolicy: Never  # TODO: change once deployed
           args: ["--debug"] #TODO: remove once deployed
           resources:
             requests:
