@@ -46,7 +46,7 @@ spec:
             - name: CHIRPSTACK_API_INTERFACE
               value: "wes-chirpstack-server:8080"
             - name: MANIFEST_FILE
-              value: "/app/data/node-manifest-v2.json"
+              value: "/app/node-manifest-v2.json"
             - name: API_INTERFACE
               value: "https://auth.sagecontinuum.org"
             - name: NODE_TOKEN #<- TODO: this has to be changed to use k3s secret. For right now hard code
@@ -61,7 +61,7 @@ spec:
               value: "sensorhardwares/"
           volumeMounts:
             - name: manifest-volume
-              mountPath: /app/data
+              mountPath: /app/node-manifest-v2.json
       volumes:
         - name: manifest-volume
           hostPath:
