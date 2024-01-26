@@ -29,10 +29,10 @@ class TestUpdateLd(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -87,10 +87,10 @@ class TestCreateLd(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -150,10 +150,10 @@ class TestUpdateLc(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -228,10 +228,10 @@ class TestCreateLc(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -378,10 +378,10 @@ class TestUpdateLk(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -507,10 +507,10 @@ class TestCreateLk(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -640,10 +640,10 @@ class TestCreateSh(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -770,10 +770,10 @@ class TestUpdateManifest(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
@@ -934,10 +934,10 @@ class TestOnMessage(unittest.TestCase):
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
-            lorawanconnection_router=LC_ROUTER,
-            lorawankey_router=LK_ROUTER,
-            lorawandevice_router=LD_ROUTER,
-            sensorhardware_router=SH_ROUTER,
+            lorawan_connection_router=LC_ROUTER,
+            lorawan_key_router=LK_ROUTER,
+            lorawan_device_router=LD_ROUTER,
+            sensor_hardware_router=SH_ROUTER,
             vsn=VSN,
             node_token=NODE_TOKEN,
             chirpstack_api_interface=CHIRPSTACK_API_INTERFACE,
