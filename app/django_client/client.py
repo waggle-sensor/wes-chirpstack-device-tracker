@@ -167,5 +167,9 @@ class DjangoClient:
             }
         except requests.exceptions.HTTPError as e:
             logging.error(f"HTTP error occurred in DjangoClient.call_api() for {endpoint}: {e}")
-            logging.error(f"    Details returned by server: {response.json()}")
+            try:
+                logging.error(f"    Details returned by server: {response.json()}")
+            except requests.exceptions.JSONDecodeError as e:
+                logging.error(f"requests.exceptions.JSONDecodeError: {e}")
+
             return None
