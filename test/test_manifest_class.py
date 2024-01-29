@@ -1,6 +1,7 @@
 import unittest
 import json
 import copy
+from pytest import mark
 from app.manifest import Manifest
 from tools.manifest import ManifestTemplate
 from unittest.mock import (
@@ -49,10 +50,8 @@ class TestSaveManifest(unittest.TestCase):
         self.filepath = MANIFEST_FILEPATH
         self.manifest = Manifest(self.filepath)
 
-    @patch('app.manifest.tempfile.NamedTemporaryFile')
-    @patch('app.manifest.os.replace')
-    @patch('app.manifest.os.unlink')
-    def test_save_manifest_happy_path(self, mock_os_unlink, mock_os_replace, mock_named_tempfile):
+    @patch('app.manifest.json.dump')
+    def test_save_manifest_happy_path(self, mock_json_dump):
         """
         Test saving the manifest file successfully
         """
@@ -61,20 +60,18 @@ class TestSaveManifest(unittest.TestCase):
         self.manifest.dict = expected_json_content
 
         # Mocking
-        with patch("app.manifest.logging.error") as mock_logging_error:
-            
-            # Call the method under test
-            self.manifest.save_manifest()
+        with patch("builtins.open", mock_open()) as mock_open_instance:
+            with patch("app.manifest.logging.error") as mock_logging_error:
+                
+                # Call the method under test
+                self.manifest.save_manifest()
 
-            # Assert
-            mock_os_replace.assert_called_once_with(mock_named_tempfile.return_value.name, self.filepath)
-            mock_os_unlink.assert_called_once_with(mock_named_tempfile.return_value.name)
-            mock_logging_error.assert_not_called()
+                # Assert
+                mock_json_dump.assert_called_once_with(self.manifest.dict, mock_open_instance(), indent=3)
+                mock_logging_error.assert_not_called()
 
-    @patch('app.manifest.tempfile.NamedTemporaryFile')
-    @patch('app.manifest.os.replace')
-    @patch('app.manifest.os.unlink')
-    def test_save_manifest_exception_handling(self, mock_os_unlink, mock_os_replace, mock_named_tempfile):
+    @patch('app.manifest.json.dump')
+    def test_save_manifest_exception_handling(self, mock_json_dump):
         """
         Test the exception handling
         """
@@ -83,18 +80,18 @@ class TestSaveManifest(unittest.TestCase):
         self.manifest.dict = expected_json_content
 
         # Mocking
-        with patch("app.manifest.logging.error") as mock_logging_error:
-            
-            # Simulate an exception during the save process
-            mock_os_replace.side_effect = Exception("Simulated error")
+        with patch("builtins.open", mock_open()) as mock_open_instance:
+            with patch("app.manifest.logging.error") as mock_logging_error:
+                
+                # Simulate an exception during the save process
+                mock_json_dump.side_effect = Exception("Simulated error")
 
-            # Act
-            self.manifest.save_manifest()
+                # Act
+                self.manifest.save_manifest()
 
-            # Assert
-            mock_os_replace.assert_called_once_with(mock_named_tempfile.return_value.name, self.manifest.filepath)
-            mock_os_unlink.assert_called_once_with(mock_named_tempfile.return_value.name)
-            mock_logging_error.assert_called_once_with("Manifest.save_manifest(): Simulated error")
+                # Assert
+                mock_json_dump.assert_called_once_with(self.manifest.dict, mock_open_instance(), indent=3)
+                mock_logging_error.assert_called_once_with("Manifest.save_manifest(): Simulated error")
 
 class TestLcCheck(unittest.TestCase):
     def setUp(self):

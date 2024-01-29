@@ -1,6 +1,7 @@
 import unittest
 import requests
 import copy
+from pytest import mark
 from unittest.mock import Mock, patch, MagicMock
 from app.chirpstack_client import ChirpstackClient
 from app.django_client import DjangoClient, HttpMethod
@@ -313,6 +314,11 @@ class TestCreateLc(unittest.TestCase):
         """
         #Mock POST response
         mock_response = Mock()
+        mock_response.headers = {
+                'Content-Type': 'application/json', 
+                'status-code': 404,
+                'Custom-Header': 'Mocked-Value',
+        }
         mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")
         mock_django_post.return_value = mock_response
 
@@ -368,7 +374,7 @@ class TestCreateLc(unittest.TestCase):
             # Assert
             self.assertEqual(len(log.output), 3)
             self.assertEqual(len(log.records), 3)
-            self.assertIn("Tracker.create_lc(): d_client.create_lc() did not return a response", log.output[2])
+            self.assertIn("Tracker.create_lc(): d_client.create_lc() did not return a valid response", log.output[2])
             mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawanconnections/", headers=self.tracker.d_client.auth_header, json=data)
             self.assertIsNone(lc_uid)
 

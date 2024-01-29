@@ -1,5 +1,6 @@
 import unittest
 import requests
+from pytest import mark
 from unittest.mock import Mock, patch, MagicMock
 from app.django_client import DjangoClient, HttpMethod
 
@@ -502,9 +503,16 @@ class TestDjangoClient(unittest.TestCase):
     @patch("app.django_client.DjangoClient.call_api")
     def test_sh_search_No_response(self, mock_call_api):
         """
-        Mocks DjangoClient.call_api() method in sh_search method to test when response is None
+        Mocks DjangoClient.call_api() method in sh_search method to test when json response is None
         """
-        mock_call_api.return_value = None
+        mock_call_api.return_value = {
+            'headers': {
+                'Content-Type': 'application/json', 
+                'status-code': 500,
+                'Custom-Header': 'Mocked-Value',
+        },
+            'json_body': None
+        }
 
         # Call the method under test
         result = self.django_client.sh_search(hw_model=HW_MODEL)
@@ -518,6 +526,11 @@ class TestDjangoClient(unittest.TestCase):
         Test DjangoClient.call_api() with a bad response
         """
         mock_response = Mock()
+        mock_response.headers = {
+                'Content-Type': 'application/json', 
+                'status-code': 404,
+                'Custom-Header': 'Mocked-Value',
+        }
         mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")
         mock_get.return_value = mock_response
 
@@ -528,7 +541,7 @@ class TestDjangoClient(unittest.TestCase):
         result = self.django_client.call_api(HttpMethod.GET, api_endpoint)
 
         # Assert
-        self.assertIsNone(result)
+        self.assertIsNone(result['json_body'])
 
 
 if __name__ == "__main__":
