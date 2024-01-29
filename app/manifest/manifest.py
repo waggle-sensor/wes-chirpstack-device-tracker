@@ -54,17 +54,19 @@ class Manifest:
 
     def save_manifest(self):
         """
-        Save manifest file atomically
+        Save manifest file
         """
-        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False)  # Avoid automatic deletion
+        # temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False)  # Avoid automatic deletion
         try:
-            json.dump(self.dict, temp_file, indent=3)
-            temp_file.close()
-            os.replace(temp_file.name, self.filepath)
+            # json.dump(self.dict, temp_file, indent=3)
+            # temp_file.close()
+            # os.replace(temp_file.name, self.filepath)
+            with open(self.filepath, 'w') as manifest_file:
+                json.dump(self.dict, manifest_file, indent=3)
         except Exception as e:
             logging.error(f"Manifest.save_manifest(): {e}")
-        if os.path.exists(temp_file.name):
-            os.unlink(temp_file.name)
+        # if os.path.exists(temp_file.name):
+        #     os.unlink(temp_file.name)
         return
 
     def lc_check(self) -> bool:
