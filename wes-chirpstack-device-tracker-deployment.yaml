@@ -14,10 +14,6 @@ spec:
       priorityClassName: wes-high-priority
       nodeSelector:
         zone: "core"
-      initContainers:
-      - name: wait-for-wes-chirpstack-gateway-bridge
-        image: busybox
-        command: ['sh', '-c', 'until kubectl get pods -l app=wes-chirpstack-gateway-bridge -o jsonpath="{.items[*].status.phase}" | grep -q Running; do sleep 1; done']
       containers:
         - name: wes-chirpstack-tracker
           image: franciscolozcoding/wes-chirpstack-tracker:latest #use waggle docker repo once deployed
