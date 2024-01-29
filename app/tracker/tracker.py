@@ -40,27 +40,24 @@ class Tracker(MqttClient):
 
         #load the node manifest
         manifest = Manifest(self.args.manifest)
-        manifest_dev_exist = manifest.ld_search(deviceInfo["devEui"])
+        server_lc_exist = self.d_client.lc_search(deviceInfo["devEui"])
 
         #retrieve data from chirpstack
         device_resp = self.c_client.get_device(deviceInfo["devEui"])
         deviceprofile_resp = self.c_client.get_device_profile(deviceInfo["deviceProfileId"])
         act_resp = self.c_client.get_device_activation(deviceInfo["devEui"])
 
-        # if lorawan device exist in manifest then...
-        if manifest_dev_exist:
+        #if lorawan connection exist in django then...
+        if server_lc_exist:
             #update lorawan device, connection, and key                
             self.update_ld(deviceInfo["devEui"], device_resp)
             self.update_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
             self.update_lk(deviceInfo["devEui"], act_resp, deviceprofile_resp)
-
-        #else lorawan device does not exist in manifest then...
         else:
             #if lorawan device exist in django then...
-            if self.d_client.ld_search(deviceInfo["devEui"]): 
+            if self.d_client.ld_search(deviceInfo["devEui"]):
                 # update lorawan device
-                self.update_ld(deviceInfo["devEui"], device_resp)
-
+                self.update_ld(deviceInfo["devEui"], device_resp) 
             #else lorawan device does not exist in django then...
             else:
                 #TODO: What is a better way to check if sensor hardware exists? 
@@ -78,10 +75,9 @@ class Tracker(MqttClient):
                 else:
                     # create a new sensor hardware
                     sh_id = self.create_sh(deviceprofile_resp)
-                
                 # create a new lorawan device
                 self.create_ld(deviceInfo["devEui"], sh_id, device_resp)
-            
+
             #create a new lorawan connection and key
             lc_str = self.create_lc(deviceInfo["devEui"], device_resp, deviceprofile_resp)
             self.create_lk(deviceInfo["devEui"], lc_str, act_resp, deviceprofile_resp)
@@ -169,11 +165,11 @@ class Tracker(MqttClient):
             "connection_type": con_type
         }
         response = self.d_client.create_lc(lc_data)
-        if response:
+        if response['json_body']:
             lc_str = self.args.vsn + "-" + dev_name + "-" + deveui
             return lc_str
         else:
-            logging.error("Tracker.create_lc(): d_client.create_lc() did not return a response")
+            logging.error("Tracker.create_lc(): d_client.create_lc() did not return a valid response")
             return None
         
     def update_lk(self, deveui: str, act_resp: dict, deviceprofile_resp: dict):
@@ -241,10 +237,10 @@ class Tracker(MqttClient):
             "capabilities": capabilities
         }
         response = self.d_client.create_sh(sh_data)
-        if response:
+        if response['json_body']:
             return response['json_body'].get('id')
         else:
-            logging.error("Tracker.create_sh(): d_client.create_sh() did not return a response")
+            logging.error("Tracker.create_sh(): d_client.create_sh() did not return a valid response")
             return None
 
     def update_manifest(self, deveui: str, manifest: Manifest, device_resp: dict, deviceprofile_resp: dict):

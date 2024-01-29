@@ -48,6 +48,23 @@ class DjangoClient:
         api_endpoint = f"{self.LC_ROUTER}{self.vsn}/{dev_eui}/"
         return  self.call_api(HttpMethod.PATCH, api_endpoint, data)
 
+    def lc_search(self, dev_eui: str) -> bool:
+        """
+        Search the db for a lorawan connection return true if found
+        """
+        api_endpoint = f"{self.LC_ROUTER}{self.vsn}/{dev_eui}/"
+        response = self.call_api(HttpMethod.GET, api_endpoint)
+
+        if response['json_body']: #if json_body is not None (record found)...
+            return True
+        else:  #if json_body is None...
+            status_code = response['headers'].get('status-code')
+            if status_code == 404: #if not found...
+                return False
+            else: #if unknown status code...
+                logging.error(f"Unexpected status code in DjangoClient.lc_search() for {api_endpoint}: {status_code}")
+                return False
+
     def get_ld(self, dev_eui: str) -> dict:
         """
         Get LoRaWAN device using dev EUI
@@ -76,17 +93,15 @@ class DjangoClient:
         api_endpoint = f"{self.LD_ROUTER}{dev_eui}/"
         response = self.call_api(HttpMethod.GET, api_endpoint)
 
-        if response:
+        if response['json_body']: #if json_body is not None (record found)...
+            return True
+        else:  #if json_body is None...
             status_code = response['headers'].get('status-code')
-            if status_code == 200:
-                return True
-            elif status_code == 404:
+            if status_code == 404: #if not found...
                 return False
-            else:
+            else: #if unknown status code...
                 logging.error(f"Unexpected status code in DjangoClient.ld_search() for {api_endpoint}: {status_code}")
                 return False
-        else:
-            return False
 
     def get_lk(self, dev_eui: str) -> dict:
         """
@@ -137,17 +152,15 @@ class DjangoClient:
         api_endpoint = f"{self.SH_ROUTER}{hw_model}/"
         response = self.call_api(HttpMethod.GET, api_endpoint)
 
-        if response:
+        if response['json_body']: #if json_body is not None (record found)...
+            return True
+        else:  #if json_body is None...
             status_code = response['headers'].get('status-code')
-            if status_code == 200:
-                return True
-            elif status_code == 404:
+            if status_code == 404: #if not found...
                 return False
-            else:
+            else: #if unknown status code...
                 logging.error(f"Unexpected status code in DjangoClient.sh_search() for {api_endpoint}: {status_code}")
                 return False
-        else:
-            return False
 
     def call_api(self, method: HttpMethod, endpoint: str, data: dict = None) -> dict:
         """
@@ -172,4 +185,9 @@ class DjangoClient:
             except requests.exceptions.JSONDecodeError as e:
                 logging.error(f"requests.exceptions.JSONDecodeError: {e}")
 
-            return None
+            # return None - old return
+
+            return {
+                'headers': dict(response.headers),
+                'json_body': None
+            }
