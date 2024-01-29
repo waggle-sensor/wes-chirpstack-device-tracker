@@ -31,16 +31,18 @@ def Get_Signal_Performance_values(message_dict):
     #Get Lorawan Performance values
     tmp_dict['rxInfo'] = []
     try:
-        for val in message_dict['rxInfo']:
-            temp = {"gatewayId":val['gatewayId'],"rssi":val['rssi'],"snr":val['snr']}
-            tmp_dict['rxInfo'].append(temp)
+        if message_dict.get('rxInfo', None):
+            for val in message_dict['rxInfo']:
+                temp = {"gatewayId":val['gatewayId'],"rssi":val['rssi'],"snr":val['snr']}
+                tmp_dict['rxInfo'].append(temp)
     except:
         logging.error("rxInfo was not found")
         raise ValueError("rxInfo was not found")
 
-    txInfo_dict = message_dict.get('txInfo', None)
     try:
-        tmp_dict['spreadingFactor'] = txInfo_dict['modulation']["lora"]["spreadingFactor"]
+        if message_dict.get('txInfo', None):
+            txInfo_dict = message_dict.get('txInfo', None)
+            tmp_dict['spreadingFactor'] = txInfo_dict['modulation']["lora"]["spreadingFactor"]
     except:
         logging.error("spreadingFactor was not found")
         raise ValueError("spreadingFactor was not found")

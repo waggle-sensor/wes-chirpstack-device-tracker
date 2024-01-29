@@ -97,12 +97,13 @@ class MqttClient:
         )
         logging.debug(data)
 
-        logging.debug("Signal Performance:")
-        for val in Performance_vals['rxInfo']:
-            logging.debug("gatewayId: " + str(val["gatewayId"]))
-            logging.debug("  rssi: " + str(val["rssi"]))
-            logging.debug("  snr: " + str(val["snr"]))
-        logging.debug("spreading factor: " + str(Performance_vals["spreadingFactor"]))
+        if Performance_vals['rxInfo']: #if rxInfo was returned then...
+            logging.debug("Signal Performance:")
+            for val in Performance_vals['rxInfo']:
+                logging.debug("gatewayId: " + str(val["gatewayId"]))
+                logging.debug("  rssi: " + str(val["rssi"]))
+                logging.debug("  snr: " + str(val["snr"]))
+            logging.debug("spreading factor: " + str(Performance_vals["spreadingFactor"]))
 
         return
 
