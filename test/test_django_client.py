@@ -426,7 +426,14 @@ class TestDjangoClient(unittest.TestCase):
         """
         Mocks DjangoClient.call_api() method in ld_search method to test when response is None
         """
-        mock_call_api.return_value = None
+        mock_call_api.return_value = {
+                'headers': {
+                    'Content-Type': 'application/json', 
+                    'status-code': 500,
+                    'Custom-Header': 'Mocked-Value',
+                },
+                'json_body': None
+            }
 
         # Call the method under test
         result = self.django_client.ld_search(dev_eui=DEV_EUI)
@@ -468,7 +475,8 @@ class TestDjangoClient(unittest.TestCase):
             'Custom-Header': 'Mocked-Value',
         }
         mock_response.headers = headers
-        mock_response.json.return_value = {"hardware": "test","hw_model": HW_MODEL, "description": "test"}
+        mock_response.json.return_value = {"detail":"not found"}
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("not found")
         mock_get.return_value = mock_response
 
         # Call the method under test
@@ -490,7 +498,7 @@ class TestDjangoClient(unittest.TestCase):
             'Custom-Header': 'Mocked-Value',
         }
         mock_response.headers = headers
-        mock_response.json.return_value = {}
+        mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP error")
         mock_get.return_value = mock_response
 
         # Call the method under test
@@ -528,7 +536,7 @@ class TestDjangoClient(unittest.TestCase):
         mock_response = Mock()
         mock_response.headers = {
                 'Content-Type': 'application/json', 
-                'status-code': 404,
+                'status-code': 500,
                 'Custom-Header': 'Mocked-Value',
         }
         mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")

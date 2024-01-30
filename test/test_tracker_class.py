@@ -729,6 +729,11 @@ class TestCreateSh(unittest.TestCase):
         """
         #mock response of requests.post method
         mock_response = Mock()
+        mock_response.headers = {
+                'Content-Type': 'application/json', 
+                'status-code': 400,
+                'Custom-Header': 'Mocked-Value',
+        }
         mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("HTTP Error")
         mock_django_post.return_value = mock_response
 
@@ -766,7 +771,7 @@ class TestCreateSh(unittest.TestCase):
             # Assert
             self.assertEqual(len(log.output), 3)
             self.assertEqual(len(log.records), 3)
-            self.assertIn("Tracker.create_sh(): d_client.create_sh() did not return a response", log.output[2])
+            self.assertIn("Tracker.create_sh(): d_client.create_sh() did not return a valid response", log.output[2])
             mock_django_post.assert_called_once_with(f"{API_INTERFACE}/sensorhardwares/", headers=self.tracker.d_client.auth_header, json=data)
             self.assertIsNone(sh_uid)
 
@@ -974,7 +979,7 @@ class TestOnMessage(unittest.TestCase):
 
 
         #Mock the return value for parse_message
-        mock_parse_message.return_value = ({}, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
+        mock_parse_message.return_value = (None, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
 
 
         # Assert Logs
@@ -990,17 +995,20 @@ class TestOnMessage(unittest.TestCase):
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
-    def test_on_message_dev_exist(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
+    @patch('app.django_client.DjangoClient.lc_search')
+    def test_on_message_dev_exist(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
         """
-        Test on_message() happy path when device EXIST in the manifest
+        Test on_message() happy path when lorawan connection EXIST in Django and local manifest
         """
         #Arrange
         #   mock Manifest.load_manifest()
         mock_load_manifest.return_value = self.manifest.dict
-        #   change deveui in mocks to one existing in manifest sample
+        #   change deveui in mocks to one existing in manifest sample aka connection in local manifest
         deveui = "7d1f5420e81235c1" 
         self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
         self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock lc_search to return true aka connection found in django
+        mock_lc_search.return_value = True
         #   mock chirpstack encoded message
         ChirpMessage = Mock()
         ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
@@ -1084,7 +1092,8 @@ class TestOnMessage(unittest.TestCase):
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
-    def test_on_message_dev_not_exist_1(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_django_patch, mock_django_post):
+    @patch('app.django_client.DjangoClient.lc_search')
+    def test_on_message_dev_not_exist_1(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_django_patch, mock_django_post):
         """
         Test on_message() happy path when device DOES NOT exist in the manifest but EXIST in django
         """
@@ -1095,6 +1104,8 @@ class TestOnMessage(unittest.TestCase):
         deveui = "12345678912345a3" 
         self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
         self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock lc_search to return false aka connection NOT found in django
+        mock_lc_search.return_value = False
         #   mock chirpstack encoded message
         ChirpMessage = Mock()
         ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
@@ -1108,7 +1119,7 @@ class TestOnMessage(unittest.TestCase):
         mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
         #   mock ChirpstackCLinet.get_device_app_key()
         mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
-        # mock DjangoClient.ld_search()
+        # mock DjangoClient.ld_search() aka device found in django
         mock_ld_search.return_value = True
 
         #call the action in testing
@@ -1180,7 +1191,8 @@ class TestOnMessage(unittest.TestCase):
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
-    def test_on_message_dev_not_exist_2(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_get_sh, mock_django_post):
+    @patch('app.django_client.DjangoClient.lc_search')
+    def test_on_message_dev_not_exist_2(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_get_sh, mock_django_post):
         """
         Test on_message() happy path when device DOES NOT exist in the manifest and in django but sensor hardware exist in django
         """
@@ -1191,6 +1203,8 @@ class TestOnMessage(unittest.TestCase):
         deveui = "12345678912345a3" 
         self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
         self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock lc_search to return false aka connection NOT found in django
+        mock_lc_search.return_value = False
         #   mock chirpstack encoded message
         ChirpMessage = Mock()
         ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
@@ -1281,7 +1295,8 @@ class TestOnMessage(unittest.TestCase):
     @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
-    def test_on_message_dev_not_exist_3(self, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_django_post):
+    @patch('app.django_client.DjangoClient.lc_search')
+    def test_on_message_dev_not_exist_3(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_django_post):
         """
         Test on_message() happy path when device DOES NOT exist in the manifest and in django and sensor hardware DOES NOT exist in django
         """
@@ -1292,6 +1307,8 @@ class TestOnMessage(unittest.TestCase):
         deveui = "12345678912345a3" 
         self.MESSAGE = self.MESSAGE.replace('"devEui": "0101010101010101"', f'"devEui": "{deveui}"')
         self.mock_chirp_methods.edit_deveui(deveui)
+        #   mock lc_search to return false aka connection NOT found in django
+        mock_lc_search.return_value = False
         #   mock chirpstack encoded message
         ChirpMessage = Mock()
         ChirpMessage.payload = f'{self.MESSAGE}'.encode("utf-8")
@@ -1305,7 +1322,7 @@ class TestOnMessage(unittest.TestCase):
         mock_device_service_stub_instance.GetActivation.return_value = self.mock_chirp_methods.get_device_profile_ret_val
         #   mock ChirpstackCLinet.get_device_app_key()
         mock_device_service_stub_instance.GetKeys.return_value = self.mock_chirp_methods.get_device_app_key_ret_val
-        #   mock search return values
+        #   mock search return values aka does not exist in django
         mock_ld_search.return_value = False
         mock_sh_search.return_value = False
 

@@ -1,4 +1,5 @@
 import unittest
+from pytest import mark
 from unittest.mock import Mock, patch, MagicMock
 from app.mqtt_client import *
 import paho.mqtt.client as mqtt
@@ -225,7 +226,7 @@ class TestLogMessage(unittest.TestCase):
         Test log_message() value error when parse_message returns less values to unpack
         """
         #Mock the return value for parse_message
-        mock_parse_message.return_value = ({}, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
+        mock_parse_message.return_value = (None, {'deviceName': 'mock_device', 'devEui': 'mock_devEui'})
 
         # Assert Logs
         with self.assertLogs(level='ERROR') as log:
@@ -367,7 +368,12 @@ class TestGetSignalPerformanceValues(unittest.TestCase):
         Test Get_Signal_Performance_values() when rxInfo is missing
         """
         # Mock the input message_dict with missing rxInfo
-        message_dict = {'txInfo': {'modulation': {'lora': {'spreadingFactor': 12}}}}
+        message_dict = {
+            'txInfo': {'modulation': {'lora': {'spreadingFactor': 12}}},
+            "rxInfo": [{
+                    "missing": "value",
+            }]
+        }
 
         # Call the Get_Signal_Performance_values function and expect a ValueError
         with self.assertRaises(ValueError):
@@ -378,7 +384,10 @@ class TestGetSignalPerformanceValues(unittest.TestCase):
         Test Get_Signal_Performance_values() when spreadingFactor is missing
         """
         # Mock the input message_dict with missing spreadingFactor
-        message_dict = {'rxInfo': [{'gatewayId': 'mock_gateway', 'rssi': -50, 'snr': 10}]}
+        message_dict = {
+            'rxInfo': [{'gatewayId': 'mock_gateway', 'rssi': -50, 'snr': 10}],
+            'txInfo': {'missing': "value"}
+        }
 
         # Call the Get_Signal_Performance_values function and expect a ValueError
         with self.assertRaises(ValueError):
