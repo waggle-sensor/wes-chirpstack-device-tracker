@@ -40,12 +40,14 @@ class Tracker(MqttClient):
 
         #load the node manifest
         manifest = Manifest(self.args.manifest)
-        server_lc_exist = self.d_client.lc_search(deviceInfo["devEui"])
 
         #retrieve data from chirpstack
         device_resp = self.c_client.get_device(deviceInfo["devEui"])
         deviceprofile_resp = self.c_client.get_device_profile(deviceInfo["deviceProfileId"])
         act_resp = self.c_client.get_device_activation(deviceInfo["devEui"])
+
+        #check for lorawan connection in server
+        server_lc_exist = self.d_client.lc_search(deviceInfo["devEui"])
 
         #if lorawan connection exist in django then...
         if server_lc_exist:
