@@ -184,9 +184,6 @@ class DjangoClient:
                 logging.error(f"    Details returned by server: {response.json()}")
             except requests.exceptions.JSONDecodeError as e:
                 logging.error(f"requests.exceptions.JSONDecodeError: {e}")
-
-            # return None - old return
-
             return {
                 'headers': dict(response.headers),
                 'json_body': None
