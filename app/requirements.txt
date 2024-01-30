@@ -1,5 +1,5 @@
-chirpstack-api==4.5.1
-grpcio==1.59.0
-paho-mqtt==1.6.1
+chirpstack-api==4.*
+grpcio==1.*
+paho-mqtt==1.*
 requests
 pytz
