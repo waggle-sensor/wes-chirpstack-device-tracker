@@ -36,15 +36,15 @@ def Get_Signal_Performance_values(message_dict):
                 temp = {"gatewayId":val['gatewayId'],"rssi":val['rssi'],"snr":val['snr']}
                 tmp_dict['rxInfo'].append(temp)
     except:
-        logging.error("rxInfo was not found")
-        raise ValueError("rxInfo was not found")
+        logging.error("Get_Signal_Performance_values(): rxInfo was not found")
+        raise ValueError("Get_Signal_Performance_values(): rxInfo was not found")
 
     try:
         if message_dict.get('txInfo', None):
             txInfo_dict = message_dict.get('txInfo', None)
             tmp_dict['spreadingFactor'] = txInfo_dict['modulation']["lora"]["spreadingFactor"]
     except:
-        logging.error("spreadingFactor was not found")
-        raise ValueError("spreadingFactor was not found")
+        logging.error("Get_Signal_Performance_values(): spreadingFactor was not found")
+        raise ValueError("Get_Signal_Performance_values(): spreadingFactor was not found")
 
     return tmp_dict
