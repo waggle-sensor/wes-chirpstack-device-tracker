@@ -3,6 +3,7 @@ import logging
 import sys
 import os
 import argparse
+import time
 from grpc import _channel as channel
 from chirpstack_api import api
 
@@ -81,7 +82,10 @@ class ChirpstackClient:
             req.application_id = app.id #Application ID (UUID) to filter devices on.
             #req.search = "" #If set, the given string will be used to search on name (optional).
 
-            devices.extend(self.List_agg_pagination(client,req,metadata))
+            try:
+                devices.extend(self.List_agg_pagination(client,req,metadata))
+            except grpc.RpcError as e:
+                return self.refresh_token(e, self.list_all_devices, app_resp)
 
         return devices
 
@@ -98,7 +102,10 @@ class ChirpstackClient:
         req = api.GetDeviceRequest()
         req.dev_eui = dev_eui
 
-        return client.Get(req, metadata=metadata)
+        try:
+            return client.Get(req, metadata=metadata)
+        except grpc.RpcError as e:
+            return self.refresh_token(e, self.get_device, dev_eui)
 
     def list_all_apps(self,tenant_resp: dict) -> dict:
         """
@@ -119,7 +126,10 @@ class ChirpstackClient:
             req.tenant_id = tenant.id #Tenant ID to list the applications for.
             #req.search = "" #If set, the given string will be used to search on name (optional).
 
-            apps.extend(self.List_agg_pagination(client,req,metadata))
+            try:
+                apps.extend(self.List_agg_pagination(client,req,metadata))
+            except grpc.RpcError as e:
+                return self.refresh_token(e, self.list_all_apps, tenant_resp)
 
         return apps
 
@@ -139,7 +149,10 @@ class ChirpstackClient:
         #req.search = "" #If set, the given string will be used to search on name (optional).
         #req.user_id = "" #If set, filters the result set to the tenants of the user. Only global API keys are able to filter by this field.
 
-        return self.List_agg_pagination(client,req,metadata)
+        try:
+            return self.List_agg_pagination(client,req,metadata)
+        except grpc.RpcError as e:
+            return self.refresh_token(e, self.list_tenants)
 
     def get_device_profile(self,device_profile_id: str) -> dict:
         """
@@ -154,7 +167,10 @@ class ChirpstackClient:
         req = api.GetDeviceProfileRequest()
         req.id = device_profile_id
 
-        return client.Get(req, metadata=metadata)
+        try:
+            return client.Get(req, metadata=metadata)
+        except grpc.RpcError as e:
+            return self.refresh_token(e, self.get_device_profile, device_profile_id)
     
     def get_device_app_key(self,deveui: str,lw_v: int) -> str:
         """
@@ -180,6 +196,8 @@ class ChirpstackClient:
             if status_code == grpc.StatusCode.NOT_FOUND:
                 logging.error("ChirpstackClient.get_device_app_key(): The device key does not exist. It is possible that the device is using ABP which does not use an application key")
                 logging.error(f"    Details: {details}")
+            elif status_code == grpc.StatusCode.UNAUTHENTICATED:
+                return self.refresh_token(e, self.get_device_app_key, deveui, lw_v)
             else:
                 logging.error(f"ChirpstackClient.get_device_app_key(): An error occurred with status code {status_code}")
                 logging.error(f"    Details: {details}")
@@ -207,7 +225,10 @@ class ChirpstackClient:
         req = api.GetDeviceActivationRequest()
         req.dev_eui = deveui
 
-        return client.GetActivation(req, metadata=metadata)
+        try:
+            return client.GetActivation(req, metadata=metadata)
+        except grpc.RpcError as e:
+            return self.refresh_token(e, self.get_device_activation, deveui)   
 
     @staticmethod
     def List_agg_pagination(client,req,metadata) -> dict:
@@ -225,6 +246,25 @@ class ChirpstackClient:
                 break
 
         return records
+
+    def refresh_token(self, e: grpc.RpcError, method, *args, **kwargs):
+        """
+        Handle exception of ExpiredSignature, and Login to the server to refresh the jwt auth token
+        """
+        # Handle the exception here
+        status_code = e.code()
+        details = e.details()
+
+        if status_code == grpc.StatusCode.UNAUTHENTICATED and "ExpiredSignature" in details:
+            # Retry login and then re-run the specified method
+            logging.warning(f"ChirpstackClient.{method.__name__}():JWT token expired. Retrying login...")
+            self.auth_token = self.login()  # Update auth_token with the new token
+            time.sleep(2)  # Introduce a short delay before retrying
+            return method(*args, **kwargs)  # Re-run the specified method with the same parameters
+
+        logging.error(f"ChirpstackClient.{method.__name__}(): Unknown error occurred with status code {status_code}")
+        logging.error(f"    Details: {details}")
+        raise Exception(f"The JWT token failed to be refreshed") #program will terminate and pod will restart
 
 #used for testing
 def main():
