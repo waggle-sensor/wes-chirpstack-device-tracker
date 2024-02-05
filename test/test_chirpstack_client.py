@@ -159,10 +159,9 @@ class TestListAllDevices(unittest.TestCase):
             # Assert the result
             self.assertEqual(devices, ['device1', 'device2', 'device1', 'device2'])
 
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
     @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
-    def test_get_device_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_service_stub):
+    def test_list_all_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel):
         """
         Test list_all_devices() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
         """
@@ -225,6 +224,40 @@ class TestListAllApps(unittest.TestCase):
 
             # Assert the result
             self.assertEqual(apps, ['app1', 'app2', 'app1', 'app2'])
+
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
+    def test_list_all_apps_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel):
+        """
+        Test list_all_apps() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
+        """
+        # Mock grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'ExpiredSignature'
+
+        # Mock List_agg_pagination
+        mock_list_agg_pagination = Mock()
+        mock_list_agg_pagination.side_effect = mock_rpc_error
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        with patch.object(client, 'List_agg_pagination', mock_list_agg_pagination):
+
+            # Mock the tenant_resp for list_all_devices
+            mock_tenant_resp = [Mock(id="tenant1"), Mock(id="tenant2")]
+
+            # Mock the login method to return a dummy token
+            with patch.object(client, "login", return_value="dummy_token"):
+
+                #mock refresh token successfully logging in and retrying the method
+                with patch.object(client, "refresh_token", return_value=['app1', 'app2', 'app1', 'app2']):
+                    # Call the method in testing
+                    result = client.list_all_apps(mock_tenant_resp)
+
+        # Assert the result
+        self.assertEqual(result, ['app1', 'app2', 'app1', 'app2'])
 
 class TestListTenants(unittest.TestCase):
     def setUp(self):
