@@ -708,6 +708,43 @@ class TestGetDeviceActivation(unittest.TestCase):
         # Assert the result
         self.assertEqual(response.activation_details, "mock_activation_details")
 
+    @patch("app.chirpstack_client.api.DeviceServiceStub")
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
+    def test_get_device_activation_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device_activation() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the get_device method to raise grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'ExpiredSignature'
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.GetActivation.side_effect = mock_rpc_error
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Mock the login method to return a dummy token
+        with patch.object(client, "login", return_value="dummy_token"):
+
+            #mock refresh token successfully logging in and retrying the method in testing
+            with patch.object(client, "refresh_token", return_value="mock_activation_details"):
+                # Call the method in testing
+                result = client.get_device_activation(mock_dev_eui)
+
+        # assertations
+        self.assertEqual(result, "mock_activation_details")
+
 class TestListAggPagination(unittest.TestCase):
 
     def setUp(self):
