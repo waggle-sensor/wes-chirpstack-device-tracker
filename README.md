@@ -1,5 +1,5 @@
 # wes-chirpstack-tracker
-Tracks lorawan devices sending payloads to wes-chirpstack-server and keys being used by the devices
+Tracks lorawan devices and its keys sending payloads to a Chirpstack Server to report to a Django app.
 
 ## Test Suite
 
