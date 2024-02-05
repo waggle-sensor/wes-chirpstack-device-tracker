@@ -145,9 +145,10 @@ class TestListAllDevices(unittest.TestCase):
         # Mock List_agg_pagination
         mock_list_agg_pagination = Mock(return_value=["device1", "device2"]) #Example
 
-        with patch.object(ChirpstackClient, 'List_agg_pagination', mock_list_agg_pagination):
-            # Create a ChirpstackClient instance
-            client = ChirpstackClient(self.mock_args)
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        with patch.object(client, 'List_agg_pagination', mock_list_agg_pagination):
 
             # Mock the app_resp for list_all_apps
             mock_app_resp = [Mock(id="app1"), Mock(id="app2")] #Example
@@ -157,6 +158,42 @@ class TestListAllDevices(unittest.TestCase):
 
             # Assert the result
             self.assertEqual(devices, ['device1', 'device2', 'device1', 'device2'])
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
+    def test_get_device_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test list_all_devices() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
+        """
+        # Mock grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'ExpiredSignature'
+
+        # Mock List_agg_pagination
+        mock_list_agg_pagination = Mock()
+        mock_list_agg_pagination.side_effect = mock_rpc_error
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        with patch.object(client, 'List_agg_pagination', mock_list_agg_pagination):
+
+            # Mock the app_resp for list_all_apps
+            mock_app_resp = [Mock(id="app1"), Mock(id="app2")] #Example
+
+            # Mock the login method to return a dummy token
+            with patch.object(client, "login", return_value="dummy_token"):
+
+                #mock refresh token successfully logging in and retrying the method
+                with patch.object(client, "refresh_token", return_value=['device1', 'device2', 'device1', 'device2']):
+                    # Call the method in testing
+                    result = client.list_all_devices(mock_app_resp)
+
+
+        # Assert the result
+        self.assertEqual(result, ['device1', 'device2', 'device1', 'device2'])
 
 class TestListAllApps(unittest.TestCase):
     def setUp(self):
@@ -600,7 +637,7 @@ class TestGetDevice(unittest.TestCase):
     @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
     def test_get_device_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_service_stub):
         """
-        Test get_device() when grpc error is raised for UNAUTHENTICATED and token needs to refreshed
+        Test get_device() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
         """
         # Mock the gRPC channel and login response
         mock_channel = Mock()
@@ -625,9 +662,9 @@ class TestGetDevice(unittest.TestCase):
         # Mock the login method to return a dummy token
         with patch.object(client, "login", return_value="dummy_token"):
 
-            #mock refresh token successfully logging in and retrying the get_device() method
+            #mock refresh token successfully logging in and retrying the method in testing
             with patch.object(client, "refresh_token", return_value="mock_device_info"):
-                # Call the refresh_token method
+                # Call the method in testing
                 result = client.get_device(mock_dev_eui)
 
         # assertations
