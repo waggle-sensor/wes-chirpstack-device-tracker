@@ -268,7 +268,7 @@ class ChirpstackClient:
         raise Exception(f"The JWT token failed to be refreshed") #program will terminate and pod will restart
 
 #used for testing
-def main():
+def main(): # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--chirpstack-account-email",
@@ -289,4 +289,4 @@ def main():
     chirpstack_client = ChirpstackClient(args)
 
 if __name__ == "__main__":
-    main()
+    main() # pragma: no cover

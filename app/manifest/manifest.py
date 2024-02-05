@@ -39,7 +39,7 @@ class Manifest:
             }
         }
 
-    def __str__(self):
+    def __str__(self): # pragma: no cover
         return f'{self.dict}'
 
     def load_manifest(self) -> dict:
@@ -212,7 +212,7 @@ class Manifest:
         return
 
 #used for testing
-def main():
+def main(): # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--manifest",
@@ -224,4 +224,4 @@ def main():
     manifest = Manifest(args.manifest)
 
 if __name__ == "__main__":
-    main()
+    main() # pragma: no cover
