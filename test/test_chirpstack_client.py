@@ -371,7 +371,6 @@ class TestGetDeviceProfile(unittest.TestCase):
 
         # Mock the DeviceProfileServiceStub
         mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
-        mock_device_profile_service_stub_instance.Get.return_value = Mock(device_profile_info="mock_device_profile_info")
         mock_device_profile_service_stub_instance.Get.side_effect = mock_rpc_error
 
         # Create a ChirpstackClient instance
@@ -534,6 +533,54 @@ class TestGetDeviceAppKey(unittest.TestCase):
         
         # Assert the result
         self.assertIsNone(app_key)
+
+    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
+    def test_get_device_app_key_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_service_stub):
+        """
+        Test get_device_app_key() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the get_device method to raise grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'ExpiredSignature'
+
+        # Mock the DeviceServiceStub
+        mock_device_service_stub_instance = mock_device_service_stub.return_value
+        mock_device_service_stub_instance.GetKeys.side_effect = mock_rpc_error
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock get_device_profile response
+        deviceprofile_resp = { 
+            "device_profile": {
+                "id": "cf2aec2f-03e1-4a60-a32c-0faeef5730d8",
+                "tenant_id": "52f14cd4-c6f1-4fbd-8f87-4025e1d49242",
+                "name": "MFR node",
+                "mac_version": 5
+            }
+        }
+        lw_v = deviceprofile_resp['device_profile']['mac_version']
+
+        # Mock the dev_eui
+        mock_dev_eui = "mock_dev_eui"
+
+        # Mock the login method to return a dummy token
+        with patch.object(client, "login", return_value="dummy_token"):
+
+            #mock refresh token successfully logging in and retrying the method in testing
+            with patch.object(client, "refresh_token", return_value="mock_nwk_key"):
+                # Call the method in testing
+                app_key = client.get_device_app_key(mock_dev_eui, lw_v)
+
+        # assertations
+        self.assertEqual(app_key, "mock_nwk_key")
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
@@ -752,7 +799,6 @@ class TestGetDevice(unittest.TestCase):
 
         # Mock the DeviceServiceStub
         mock_device_service_stub_instance = mock_device_service_stub.return_value
-        mock_device_service_stub_instance.Get.return_value = Mock(device_info="mock_device_info")
         mock_device_service_stub_instance.Get.side_effect = mock_rpc_error
 
         # Create a ChirpstackClient instance
