@@ -249,7 +249,8 @@ class ChirpstackClient:
 
     def refresh_token(self, e: grpc.RpcError, method, *args, **kwargs):
         """
-        Handle exception of ExpiredSignature, and Login to the server to refresh the jwt auth token
+        Handle exception of ExpiredSignature, by logging into the server to refresh the jwt auth token
+        and calling the method again that raised the exception
         """
         # Handle the exception here
         status_code = e.code()
