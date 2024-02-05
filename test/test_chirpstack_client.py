@@ -1,4 +1,5 @@
 import unittest
+from pytest import mark
 from unittest.mock import Mock, patch, MagicMock
 from app.chirpstack_client import ChirpstackClient
 import grpc
@@ -397,9 +398,10 @@ class TestGetDeviceAppKey(unittest.TestCase):
 
     @patch('app.chirpstack_client.api.DeviceServiceStub')
     @patch('app.chirpstack_client.grpc.insecure_channel')
+    @mark.rn
     def test_get_device_app_key_failure_Other(self, mock_insecure_channel, mock_device_service_stub):
         """
-        Test the get_device_app_key() method with a RpcError exception thats other than a grpc.StatusCode.UNAUTHENTICATED
+        Test the get_device_app_key() method with a RpcError exception that gets catch by else in if statement
         """
         # Mock the gRPC channel and login response
         mock_channel = Mock()
@@ -409,7 +411,7 @@ class TestGetDeviceAppKey(unittest.TestCase):
         mock_device_service_stub_instance = mock_device_service_stub.return_value
         # Mock the GetKeys method to raise grpc.RpcError()
         mock_rpc_error = grpc.RpcError()
-        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.code = lambda: grpc.StatusCode.ABORTED
         mock_rpc_error.details = lambda: 'Invalid credentials'
         mock_device_service_stub_instance.GetKeys.side_effect = mock_rpc_error
 
@@ -436,7 +438,7 @@ class TestGetDeviceAppKey(unittest.TestCase):
             # Assert logs
             self.assertEqual(len(log.output), 2)
             self.assertEqual(len(log.records), 2)
-            self.assertIn(f"An error occurred with status code {grpc.StatusCode.UNAUTHENTICATED}", log.output[0])
+            self.assertIn(f"An error occurred with status code {grpc.StatusCode.ABORTED}", log.output[0])
        
         # Assert the result
         self.assertIsNone(app_key)
