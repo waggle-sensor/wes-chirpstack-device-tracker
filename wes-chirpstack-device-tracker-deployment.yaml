@@ -49,8 +49,11 @@ spec:
               value: "/app/node-manifest-v2.json"
             - name: API_INTERFACE
               value: "https://auth.sagecontinuum.org"
-            - name: NODE_TOKEN #<- TODO: this has to be changed to use k3s secret. For right now hard code
-              value: "8ce294ce5bf65c95f7e4c635605122ef5ae27826"
+            - name: NODE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: django-token
+                  key: token
             - name: LORAWANCONNECTION_ROUTER
               value: "lorawanconnections/"
             - name: LORAWANKEY_ROUTER
