@@ -353,6 +353,44 @@ class TestGetDeviceProfile(unittest.TestCase):
         # Assert the result
         self.assertEqual(device_profile_info.device_profile_info, "mock_device_profile_info")
 
+    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
+    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch("app.chirpstack_client.time.sleep", return_value=None) #dont time.sleep() for test case
+    def test_get_device_profile_unauthenticated_grpc_error(self, mock_sleep, mock_insecure_channel, mock_device_profile_service_stub):
+        """
+        Test get_device_profile() when grpc error is raised for UNAUTHENTICATED and token needs to be refreshed
+        """
+        # Mock the gRPC channel and login response
+        mock_channel = Mock()
+        mock_insecure_channel.return_value = mock_channel
+
+        # Mock the get_device method to raise grpc.RpcError()
+        mock_rpc_error = grpc.RpcError()
+        mock_rpc_error.code = lambda: grpc.StatusCode.UNAUTHENTICATED
+        mock_rpc_error.details = lambda: 'ExpiredSignature'
+
+        # Mock the DeviceProfileServiceStub
+        mock_device_profile_service_stub_instance = mock_device_profile_service_stub.return_value
+        mock_device_profile_service_stub_instance.Get.return_value = Mock(device_profile_info="mock_device_profile_info")
+        mock_device_profile_service_stub_instance.Get.side_effect = mock_rpc_error
+
+        # Create a ChirpstackClient instance
+        client = ChirpstackClient(self.mock_args)
+
+        # Mock the device profile ID
+        mock_device_profile_id = "mock_device_profile_id"
+
+        # Mock the login method to return a dummy token
+        with patch.object(client, "login", return_value="dummy_token"):
+
+            #mock refresh token successfully logging in and retrying the method in testing
+            with patch.object(client, "refresh_token", return_value="mock_device_profile_info"):
+                # Call the method in testing
+                device_profile_info = client.get_device_profile(mock_device_profile_id)
+
+        # assertations
+        self.assertEqual(device_profile_info, "mock_device_profile_info")
+
 class TestGetDeviceAppKey(unittest.TestCase):
 
     def setUp(self):
