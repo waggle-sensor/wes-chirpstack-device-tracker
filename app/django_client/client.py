@@ -2,7 +2,6 @@ import requests
 import logging
 import sys
 import os
-import base64
 from urllib.parse import urljoin
 from argparse import Namespace
 from enum import Enum
@@ -21,7 +20,7 @@ class DjangoClient:
         self.args = args
         self.server = self.args.api_interface
         self.vsn = self.args.vsn
-        self.auth_token = base64.b64decode(self.args.node_token).decode('latin1')
+        self.auth_token = self.args.node_token
         self.auth_header = {"Authorization": f"node_auth {self.auth_token}"}
         self.LC_ROUTER = self.args.lorawan_connection_router
         self.LK_ROUTER = self.args.lorawan_key_router
