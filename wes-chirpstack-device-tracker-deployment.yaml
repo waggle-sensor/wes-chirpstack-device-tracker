@@ -17,7 +17,6 @@ spec:
       containers:
         - name: wes-chirpstack-tracker
           image: franciscolozcoding/wes-chirpstack-tracker:latest #use waggle docker repo once deployed
-          args: 
           resources:
             requests:
               cpu: 50m
