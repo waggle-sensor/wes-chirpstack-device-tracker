@@ -211,7 +211,6 @@ class Manifest:
 
         return
 
-#used for testing
 def main(): # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument(
