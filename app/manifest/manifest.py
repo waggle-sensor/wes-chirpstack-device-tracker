@@ -213,6 +213,7 @@ class Manifest:
 
 def main(): # pragma: no cover
     parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="enable debug logs")  
     parser.add_argument(
         "--manifest",
         default=os.getenv("MANIFEST_FILE"),
@@ -220,6 +221,12 @@ def main(): # pragma: no cover
         help="path to node manifest file",
     )
     args = parser.parse_args()
+    #configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
     manifest = Manifest(args.manifest)
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import logging
+import argparse
 import os
 import paho.mqtt.client as mqtt
 import time
@@ -128,3 +129,44 @@ class MqttClient:
         self.client.connect(host=self.args.mqtt_server_ip, port=self.args.mqtt_server_port, bind_address="0.0.0.0")
         logging.info("waiting for callback...")
         self.client.loop_forever()
+
+def main(): # pragma: no cover
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="enable debug logs")
+    parser.add_argument(
+        "--vsn",
+        default=os.getenv("WAGGLE_NODE_VSN"),
+        help="The Node's vsn.",
+    )
+    parser.add_argument(
+        "--mqtt-server-ip",
+        default=os.getenv("MQTT_SERVER_HOST"),
+        help="MQTT server IP address",
+    )
+    parser.add_argument(
+        "--mqtt-server-port",
+        default=os.getenv("MQTT_SERVER_PORT"),
+        help="MQTT server port",
+        type=int,
+    )
+    parser.add_argument(
+        "--mqtt-subscribe-topic",
+        default=os.getenv("MQTT_SUBSCRIBE_TOPIC"),
+        help="MQTT subscribe topic",
+    )
+
+    #get args
+    args = parser.parse_args()
+
+    #configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
+
+    mqtt_client = MqttClient(args)
+    mqtt_client.run()
+
+if __name__ == "__main__":
+    main() # pragma: no cover

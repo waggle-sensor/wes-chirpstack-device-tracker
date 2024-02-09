@@ -7,7 +7,6 @@ import time
 from grpc import _channel as channel
 from chirpstack_api import api
 
-
 #Pagination
 LIMIT = 100 #Max number of records to return in the result-set.
 OFFSET = LIMIT #Offset in the result-set (setting offset=limit goes to the next set of records aka next page)
@@ -269,6 +268,7 @@ class ChirpstackClient:
 
 def main(): # pragma: no cover
     parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="enable debug logs")
     parser.add_argument(
         "--chirpstack-account-email",
         default=os.getenv("CHIRPSTACK_ACCOUNT_EMAIL"),
@@ -285,6 +285,12 @@ def main(): # pragma: no cover
         help="Chirpstack's server API interface. The port is usually 8080",
     )
     args = parser.parse_args()
+    #configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
     chirpstack_client = ChirpstackClient(args)
 
 if __name__ == "__main__":

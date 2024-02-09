@@ -229,6 +229,12 @@ def main(): # pragma: no cover
         help="API server's Sensor Hardware Router.",
     )
     args = parser.parse_args()
+    #configure logging
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(asctime)s %(message)s",
+        datefmt="%Y/%m/%d %H:%M:%S",
+    )
     django_client = DjangoClient(args)
 
 if __name__ == "__main__":
