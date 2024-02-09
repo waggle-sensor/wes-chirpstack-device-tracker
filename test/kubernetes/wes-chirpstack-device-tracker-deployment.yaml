@@ -65,12 +65,7 @@ spec:
           volumeMounts:
             - name: manifest-volume
               mountPath: /app/node-manifest-v2.json
-            - name: scalene-reports-volume
-              mountPath: /tmp/
       volumes:
         - name: manifest-volume
           hostPath:
             path: /etc/waggle/node-manifest-v2.json
-        - name: scalene-reports-volume
-          hostpath:
-            path: /tmp/
