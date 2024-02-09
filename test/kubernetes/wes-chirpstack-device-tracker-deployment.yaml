@@ -17,6 +17,7 @@ spec:
       containers:
         - name: wes-chirpstack-tracker
           image: franciscolozcoding/wes-chirpstack-tracker:latest #use waggle docker repo once deployed
+          args: ["--debug"]
           resources:
             requests:
               cpu: 50m
@@ -64,7 +65,12 @@ spec:
           volumeMounts:
             - name: manifest-volume
               mountPath: /app/node-manifest-v2.json
+            - name: scalene-reports-volume
+              mountPath: /tmp/
       volumes:
         - name: manifest-volume
           hostPath:
             path: /etc/waggle/node-manifest-v2.json
+        - name: scalene-reports-volume
+          hostpath:
+            path: /tmp/
