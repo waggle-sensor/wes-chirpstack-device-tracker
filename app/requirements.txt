@@ -3,3 +3,4 @@ grpcio==1.*
 paho-mqtt==1.*
 requests
 pytz
+scalene==1.*       # a high-performance CPU, GPU and memory profiler    
