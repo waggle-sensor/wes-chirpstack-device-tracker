@@ -3,6 +3,7 @@ import argparse
 import logging
 from pathlib import Path
 from tracker import Tracker
+from scalene import scalene_profiler
 
 def main():
 
@@ -91,8 +92,16 @@ def main():
         datefmt="%Y/%m/%d %H:%M:%S",
     )
 
+    if args.debug:
+        # Start profiling
+        scalene_profiler.start(output_file="/tmp/")
+
     tracker = Tracker(args)
     tracker.run()
+
+    if args.debug:
+        # Stop profiling
+        scalene_profiler.stop()
 
 if __name__ == "__main__":
     main()
