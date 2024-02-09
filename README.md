@@ -5,6 +5,10 @@ Tracks lorawan devices sending payloads to a Chirpstack Server to report to a Dj
 - Django App: [waggle-auth-app](https://github.com/waggle-sensor/waggle-auth-app)
 >NOTE: The Django App encompasses the models, serializers, and views necessary for facilitating API calls within `app/django_client/`
 
+## Production Deployment
+
+> TODO: include files deployed in waggle-edge-stack
+
 ## Running Individual Packages
 The packages in `app/` can be used invidually by running the main file. Example:
 ```sh
@@ -14,13 +18,14 @@ python3 app/chirpstack_client/client.py --debug --chirpstack-account-email test@
 
 ## Test Suite
 
-To run the test suite download the requirements in the test folder, then run the following command
+### Unit Test
+To run unit tests download the requirements in `/test/`, then run the following command
 ```
 pytest
 ```
 
-> TODO: include notes on running scalene
-
+### Integration Test
+To test wes-chirpstack-tracker in a k3s cluster use the yaml files in `/test/kubernetes/`.
 
 ## More Information
 - A "Manifest" refers to a JSON file stored within a node that provides information about its hardware specifications, project details, and other relevant data.
