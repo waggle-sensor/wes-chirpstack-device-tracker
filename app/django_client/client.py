@@ -1,5 +1,6 @@
 import requests
 import logging
+import argparse
 import sys
 import os
 from urllib.parse import urljoin
@@ -188,3 +189,47 @@ class DjangoClient:
                 'headers': dict(response.headers),
                 'json_body': None
             }
+
+def main(): # pragma: no cover
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", action="store_true", help="enable debug logs")
+    parser.add_argument(
+        "--vsn",
+        default=os.getenv("WAGGLE_NODE_VSN"),
+        help="The Node's vsn.",
+    )
+    parser.add_argument(
+        "--api-interface",
+        default=os.getenv("API_INTERFACE"),
+        help="API server interface.",
+    )
+    parser.add_argument(
+        "--node-token",
+        default=os.getenv("NODE_TOKEN"),
+        help="The Node's token to access Django server API interface.",
+    )
+    parser.add_argument(
+        "--lorawan-connection-router",
+        default=os.getenv("LORAWANCONNECTION_ROUTER"),
+        help="API server's Lorawan Connection Router.",
+    )
+    parser.add_argument(
+        "--lorawan-key-router",
+        default=os.getenv("LORAWANKEY_ROUTER"),
+        help="API server's Lorawan Key Router.",
+    )
+    parser.add_argument(
+        "--lorawan-device-router",
+        default=os.getenv("LORAWANDEVICE_ROUTER"),
+        help="API server's Lorawan Device Router.",
+    )
+    parser.add_argument(
+        "--sensor-hardware-router",
+        default=os.getenv("SENSORHARDWARE_ROUTER"),
+        help="API server's Sensor Hardware Router.",
+    )
+    args = parser.parse_args()
+    django_client = DjangoClient(args)
+
+if __name__ == "__main__":
+    main() # pragma: no cover
