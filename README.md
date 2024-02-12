@@ -27,6 +27,8 @@ pytest
 ### Integration Test
 To test wes-chirpstack-tracker in a k3s cluster use the yaml files in `/test/kubernetes/`.
 
+- If you need to use `secret.yaml`, make sure you add your base 64 encoded token to it
+
 ## More Information
 - A "Manifest" refers to a JSON file stored within a node that provides information about its hardware specifications, project details, and other relevant data.
 - Chirpstack APIs
