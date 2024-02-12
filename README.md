@@ -6,7 +6,8 @@ Tracks lorawan devices sending payloads to a Chirpstack Server to report to a Dj
 >NOTE: The Django App encompasses the models, serializers, and views necessary for facilitating API calls within `app/django_client/`
 
 ## Production Deployment
-
+- When deploying an update, initiate a release process.
+- The wes-chirpstack-tracker container is deployed to waggle-edge-stack using the following files
 > TODO: include files deployed in waggle-edge-stack
 
 ## Running Individual Packages
@@ -25,9 +26,10 @@ pytest
 ```
 
 ### Integration Test
-To test wes-chirpstack-tracker in a k3s cluster use the yaml files in `/test/kubernetes/`.
-
-- If you need to use `secret.yaml`, make sure you add your base 64 encoded token to it
+- To test wes-chirpstack-tracker in a k3s cluster use the yaml files in `/test/kubernetes/`.
+    - If you need to use `secret.yaml`, make sure you add your base 64 encoded token to it
+- One way to test an update's image build is to open a PR.
+    - Open a PR which builds a some-image:pr-x for every push you do to help testing.
 
 ## More Information
 - A "Manifest" refers to a JSON file stored within a node that provides information about its hardware specifications, project details, and other relevant data.
