@@ -16,7 +16,7 @@ spec:
         zone: "core"
       containers:
         - name: wes-chirpstack-tracker
-          image: franciscolozcoding/wes-chirpstack-tracker:latest #use waggle docker repo once deployed
+          image: waggle/wes-chirpstack-tracker:latest
           args: ["--debug"]
           resources:
             requests:
