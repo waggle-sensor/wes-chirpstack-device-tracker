@@ -30,6 +30,10 @@ pytest
     - If you need to use `secret.yaml`, make sure you add your base 64 encoded token to it
 - One way to test an update's image build is to open a PR.
     - Open a PR which builds a some-image:pr-x for every push you do to help testing.
+    - if you're iterating on the image, you would mostly use the explicit image:tag@shasum
+        - ![PR](/images/PR.png)
+            - Here you can see the image:tag@shasum
+            - If you want to pull the image you would use image:tag@shasum
 
 ## More Information
 - A "Manifest" refers to a JSON file stored within a node that provides information about its hardware specifications, project details, and other relevant data.
