@@ -7,8 +7,8 @@ Tracks lorawan devices sending payloads to a Chirpstack Server to report to a Dj
 
 ## Production Deployment
 - When deploying an update, initiate a release process.
-- The wes-chirpstack-tracker container is deployed to waggle-edge-stack using the following files
-> TODO: include files deployed in waggle-edge-stack
+- The wes-chirpstack-tracker container is deployed to nodes via waggle-edge-stack:
+    - [waggle-edge-stack wes-chirpstack-tracker-deployment.yaml](https://github.com/waggle-sensor/waggle-edge-stack/blob/main/kubernetes/wes-chirpstack/wes-chirpstack-tracker-deployment.yaml)
 
 ## Running Individual Packages
 The packages in `app/` can be used invidually by running the main file. Example:
