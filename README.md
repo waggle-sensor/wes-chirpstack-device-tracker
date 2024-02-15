@@ -27,6 +27,7 @@ pytest
 
 ### Integration Test
 - To test wes-chirpstack-tracker in a k3s cluster use the yaml files in `/test/kubernetes/`.
+    - if `django-token` secret is not in the cluster, wes-chirpstack-tracker pod will stay in `CreateContainerConfigError` status until the secret is created. Once it is created the pod will start running by itself.
     - If you need to use `secret.yaml`, make sure you add your base 64 encoded token to it
 - One way to test an update's image build is to open a PR.
     - Open a PR which builds a some-image:pr-x for every push you do to help testing.
