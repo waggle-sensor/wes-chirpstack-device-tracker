@@ -3,7 +3,7 @@ import requests
 import copy
 from pytest import mark
 from unittest.mock import Mock, patch, MagicMock
-from app.chirpstack_client import ChirpstackClient
+from chirpstack_api_wrapper import *
 from app.django_client import DjangoClient, HttpMethod
 from app.tracker import Tracker
 from app.tracker.parse import *
@@ -26,7 +26,7 @@ MANIFEST_FILEPATH = '/etc/waggle/node-manifest-v2.json'
 
 class TestUpdateLd(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -46,8 +46,8 @@ class TestUpdateLd(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_ld_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_django_patch):
         """
         Successfully use chirpstack lorawan device data to call django's client update_ld()
@@ -84,7 +84,7 @@ class TestUpdateLd(unittest.TestCase):
 
 class TestCreateLd(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -104,8 +104,8 @@ class TestCreateLd(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_ld_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_django_post):
         """
         Successfully use chirpstack lorawan device data to call DjangoClient.create_ld()
@@ -147,7 +147,7 @@ class TestCreateLd(unittest.TestCase):
 
 class TestUpdateLc(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -167,9 +167,9 @@ class TestUpdateLc(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_lc_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
         """
         Successfully use chirpstack lorawan device and device profile data 
@@ -225,7 +225,7 @@ class TestUpdateLc(unittest.TestCase):
 
 class TestCreateLc(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -245,9 +245,9 @@ class TestCreateLc(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_lc_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
         """
         Successfully use chirpstack lorawan device and device profile data 
@@ -305,9 +305,9 @@ class TestCreateLc(unittest.TestCase):
         self.assertEqual(lc_uid, VSN + "-" + replace_spaces(device_resp.device.name) + "-" + mock_dev_eui)
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_lc_no_response(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
         """
         Test when DjangoClient.create_lc() returns no response
@@ -380,7 +380,7 @@ class TestCreateLc(unittest.TestCase):
 
 class TestUpdateLk(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -400,9 +400,9 @@ class TestUpdateLk(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.PATCH")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_lk_otaa_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
         """
         Successfully use chirpstack lorawan device activation and device profile data 
@@ -453,9 +453,9 @@ class TestUpdateLk(unittest.TestCase):
         mock_django_patch.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/{VSN}/{mock_dev_eui}/", headers=self.tracker.d_client.auth_header, json=data)
 
     @patch("app.django_client.HttpMethod.PATCH")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_lk_abp_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
         """
         Successfully use chirpstack lorawan device activation and device profile data 
@@ -509,7 +509,7 @@ class TestUpdateLk(unittest.TestCase):
 
 class TestCreateLk(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -529,9 +529,9 @@ class TestCreateLk(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_lk_otaa_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
         """
         Successfully use chirpstack lorawan device activation and device profile data 
@@ -584,9 +584,9 @@ class TestCreateLk(unittest.TestCase):
         mock_django_post.assert_called_once_with(f"{API_INTERFACE}/lorawankeys/", headers=self.tracker.d_client.auth_header, json=data)
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_lk_abp_happy_path(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub, mock_django_post):
         """
         Successfully use chirpstack lorawan device activation and device profile data 
@@ -642,7 +642,7 @@ class TestCreateLk(unittest.TestCase):
 
 class TestCreateSh(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -662,8 +662,8 @@ class TestCreateSh(unittest.TestCase):
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_sh_happy_path(self, mock_insecure_channel, mock_device_profile_service_stub, mock_django_post):
         """
         Successfully use chirpstack lorawan device profile data 
@@ -721,8 +721,8 @@ class TestCreateSh(unittest.TestCase):
         self.assertEqual(sh_uid, response_data["id"])
 
     @patch("app.django_client.HttpMethod.POST")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_create_sh_no_response(self, mock_insecure_channel, mock_device_profile_service_stub, mock_django_post):
         """
         Test when DjangoClient.create_sh() returns an error
@@ -777,7 +777,7 @@ class TestCreateSh(unittest.TestCase):
 
 class TestUpdateManifest(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -800,9 +800,9 @@ class TestUpdateManifest(unittest.TestCase):
         #mock ChirpstackClient method return values
         self.mock_chirp_methods = Mock_ChirpstackClient_Methods('mock_dev_eui')
 
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_manifest_dev_exist(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub):
         """
         Successfully use chirpstack lorawan device and device profile data to
@@ -872,9 +872,9 @@ class TestUpdateManifest(unittest.TestCase):
         #Assert if manifest dict was updated
         self.assertTrue(self.manifest.dict["lorawanconnections"][0] == new_data) #self.manifest.dict["lorawanconnections"][0] is 7d1f5420e81235c1 device
 
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def test_update_manifest_dev_not_exist(self, mock_insecure_channel, mock_device_service_stub, mock_device_profile_service_stub):
         """
         Successfully use chirpstack lorawan device and device profile data to
@@ -941,7 +941,7 @@ class TestUpdateManifest(unittest.TestCase):
 
 class TestOnMessage(unittest.TestCase):
 
-    @patch('app.chirpstack_client.grpc.insecure_channel')
+    @patch('chirpstack_api_wrapper.grpc.insecure_channel')
     def setUp(self, mock_insecure_channel):
         self.args = Mock(
             api_interface=API_INTERFACE,
@@ -992,8 +992,8 @@ class TestOnMessage(unittest.TestCase):
                 self.assertIn(f"Tracker.on_message(): Message did not parse correctly, {ve}", log.output[0])
 
     @patch("app.django_client.HttpMethod.PATCH")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
     @patch('app.django_client.DjangoClient.lc_search')
     def test_on_message_dev_exist(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_django_patch):
@@ -1089,8 +1089,8 @@ class TestOnMessage(unittest.TestCase):
     @patch("app.django_client.HttpMethod.POST")
     @patch("app.django_client.HttpMethod.PATCH")
     @patch("app.django_client.DjangoClient.ld_search")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
     @patch('app.django_client.DjangoClient.lc_search')
     def test_on_message_dev_not_exist_1(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_django_patch, mock_django_post):
@@ -1188,8 +1188,8 @@ class TestOnMessage(unittest.TestCase):
     @patch("app.django_client.DjangoClient.get_sh")
     @patch("app.django_client.DjangoClient.sh_search")
     @patch("app.django_client.DjangoClient.ld_search")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
     @patch('app.django_client.DjangoClient.lc_search')
     def test_on_message_dev_not_exist_2(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_get_sh, mock_django_post):
@@ -1292,8 +1292,8 @@ class TestOnMessage(unittest.TestCase):
     @patch("app.django_client.HttpMethod.POST")
     @patch("app.django_client.DjangoClient.sh_search")
     @patch("app.django_client.DjangoClient.ld_search")
-    @patch('app.chirpstack_client.api.DeviceProfileServiceStub')
-    @patch('app.chirpstack_client.api.DeviceServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceProfileServiceStub')
+    @patch('chirpstack_api_wrapper.api.DeviceServiceStub')
     @patch('app.manifest.Manifest.load_manifest')
     @patch('app.django_client.DjangoClient.lc_search')
     def test_on_message_dev_not_exist_3(self, mock_lc_search, mock_load_manifest, mock_device_service_stub, mock_device_profile_service_stub, mock_ld_search, mock_sh_search, mock_django_post):

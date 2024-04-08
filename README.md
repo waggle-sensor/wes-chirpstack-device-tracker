@@ -13,7 +13,7 @@ Tracks lorawan devices sending payloads to a Chirpstack Server to report to a Dj
 ## Running Individual Packages
 The packages in `app/` can be used invidually by running the main file. Example:
 ```sh
-python3 app/chirpstack_client/client.py --debug --chirpstack-account-email test@email.com --chirpstack-account-password test --chirpstack-api-interface localhost:8080
+python3 app/django_client/client.py --debug --vsn W030 --api-interface https://auth.sagecontinuum.org --node-token akdfh80034 --lorawan-connection-router lorawanconnections/ --lorawan-key-router lorawankeys/ --lorawan-device-router lorawandevices/ --sensor-hardware-router sensorhardwares/
 ```
 >NOTE: the main file name will be different based on the package
 
