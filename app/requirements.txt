@@ -1,4 +1,4 @@
-git+https://github.com/waggle-sensor/chirpstack-api-wrapper
+git+https://github.com/waggle-sensor/chirpstack_api_wrapper
 paho-mqtt==1.*
 requests
 pytz
