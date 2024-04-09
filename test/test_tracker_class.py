@@ -62,7 +62,7 @@ class TestUpdateLd(unittest.TestCase):
         mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -120,7 +120,7 @@ class TestCreateLd(unittest.TestCase):
         mock_device_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -188,7 +188,7 @@ class TestUpdateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -266,7 +266,7 @@ class TestCreateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -335,7 +335,7 @@ class TestCreateLc(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -422,7 +422,7 @@ class TestUpdateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -478,7 +478,7 @@ class TestUpdateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -551,7 +551,7 @@ class TestCreateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -609,7 +609,7 @@ class TestCreateLk(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the dev_eui
         mock_dev_eui = "mock_dev_eui"
@@ -697,7 +697,7 @@ class TestCreateSh(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the device profile ID
         mock_device_profile_id = "mock_device_profile_id"
@@ -747,7 +747,7 @@ class TestCreateSh(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Mock the device profile ID
         mock_device_profile_id = "mock_device_profile_id"
@@ -824,7 +824,7 @@ class TestUpdateManifest(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Call chirpstack_client get_device
         device_resp = chirpstack_client.get_device(self.mock_chirp_methods.get_device_ret_val.device.dev_eui)
@@ -896,7 +896,7 @@ class TestUpdateManifest(unittest.TestCase):
         mock_device_profile_service_stub_instance.Get.return_value = self.mock_chirp_methods.get_device_profile_ret_val
 
         # Create a ChirpstackClient instance
-        chirpstack_client = ChirpstackClient(self.args)
+        chirpstack_client = ChirpstackClient(self.args.chirpstack_account_email,self.args.chirpstack_account_password,self.args.chirpstack_api_interface)
 
         # Call chirpstack_client get_device
         device_resp = chirpstack_client.get_device(self.mock_chirp_methods.get_device_ret_val.device.dev_eui)
