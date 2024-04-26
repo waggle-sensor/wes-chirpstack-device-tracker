@@ -21,7 +21,7 @@ class Tracker(MqttClient):
     """
     def __init__(self, args: Namespace):
         super().__init__(args)
-        self.c_client = ChirpstackClient(args)
+        self.c_client = ChirpstackClient(args.chirpstack_account_email,args.chirpstack_account_password,args.chirpstack_api_interface)
         self.d_client = DjangoClient(args)
 
     #if execution of this method slows down mqtt client's network loop
