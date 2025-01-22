@@ -10,6 +10,18 @@ Tracks lorawan devices sending payloads to a Chirpstack Server to report to a Dj
 - wes-chirpstack-tracker is deployed to nodes via waggle-edge-stack:
     - [waggle-edge-stack wes-chirpstack-tracker-deployment.yaml](https://github.com/waggle-sensor/waggle-edge-stack/blob/main/kubernetes/wes-chirpstack/wes-chirpstack-tracker-deployment.yaml)
 
+### Setting the Secret "django-token"
+To set the django-token secret follow these steps:
+1. Find or Generate the secret key the Node in waggle-auth-app using using the [Node Auth Token app](https://auth.sagecontinuum.org/admin/node_auth/token/)
+1. Once you have the key, base64 encode it
+```sh
+echo -n 'key' | base64
+```
+1. Finally, deploy the base54 encoded key as a secret to the Node's k8s cluster. A template is [here](/test/kubernetes/secret.yaml)
+```sh
+kubectl apply -f secret.yaml
+```
+
 ## Running Individual Packages
 The packages in `app/` can be used invidually by running the main file. Example:
 ```sh
